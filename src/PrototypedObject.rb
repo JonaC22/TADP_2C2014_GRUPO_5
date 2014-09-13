@@ -1,3 +1,6 @@
+require 'ostruct'
+
+
 module Conversiones
 
   def poner_igual una_prop
@@ -19,16 +22,36 @@ module Conversiones
 end
 
 
+module Observable
+
+  def agregar_a_lista_de_procs(nombre,procedimiento)
+   m = OpenStruct.new({:name => nombre,:accion => procedimiento})
+   self.procs << m
+  end
+
+end
+
+
 
 class PrototypedObject
 
   include Conversiones
+  include Observable
 
-  attr_accessor :interesados # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
-
+  attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
+                :procs        #Lista de procedimientos . No estan bindeados, son los procs puros
   def initialize
      @interesados = []
+     @procs = []
   end
+
+
+  def set_method nombre_metodo, accion
+    self.agregar_a_lista_de_procs(nombre_metodo,accion)
+    define_singleton_method(nombre_metodo,accion)
+    self.interesados.each { |un_interesado| un_interesado.set_method(nombre_metodo,accion)} #Si tiene prototipos le agrega los metodos
+  end
+
 
 
   def set_property nombre_atributo, valor
@@ -37,27 +60,21 @@ class PrototypedObject
     self.interesados.each { |un_interesado| un_interesado.set_property(nombre_atributo,valor) } #Si tiene prototipos le agrega los atributos
   end
 
-  def set_method nombre_metodo, accion
-    define_singleton_method(nombre_metodo,accion)
-    self.interesados.each { |un_interesado| un_interesado.set_method(nombre_metodo,accion)} #Si tiene prototipos le agrega los metodos
-  end
+
+
 
   def set_prototype un_prototipo
-    un_prototipo.instance_variables.each { |una_property|
-          if (not(self.instance_variable_defined?(una_property.to_sym)))
-              valor = un_prototipo.instance_variable_get(una_property)
-              prop_sin_arroba = self.quitar_arroba(una_property.to_sym)
-              self.set_property(prop_sin_arroba.to_sym,valor)
-          end
-      }
 
-    un_prototipo.singleton_methods.each { |metodo|
-      if (not(self.este_metodo_es_un_attr(metodo)))
-          self.set_method(metodo,proc{|*argumentos| un_prototipo.send(metodo,*argumentos)})
+    un_prototipo.procs.each { |proc| self.set_method(proc.name,proc.accion)}
+
+    un_prototipo.instance_variables.each { |una_property|
+      if (not(self.instance_variable_defined?(una_property)))
+        prop_sin_arroba = self.quitar_arroba(una_property)
+        self.set_property(prop_sin_arroba.to_sym,nil)
       end
     }
 
-      un_prototipo.interesados << self
+    un_prototipo.interesados << self
   end
 
 end

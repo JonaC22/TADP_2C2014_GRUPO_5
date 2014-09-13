@@ -102,19 +102,29 @@ describe 'Test de prototypes objects' do
     espadachin.set_prototype(guerrero)
     espadachin.set_property(:habilidad, 0.5)
     espadachin.set_property(:potencial_espada, 30)
-    espadachin.energia = 100
+    espadachin.energia = 130
+    espadachin.potencial_ofensivo = 40
+    espadachin.potencial_defensivo = 120
+
+    expect(espadachin.energia).to eq(130)
+    expect(espadachin.potencial_ofensivo).to eq(40)
+    expect(espadachin.potencial_defensivo).to eq(120)
+
+    expect(guerrero.energia).to eq(100)
+    expect(guerrero.potencial_ofensivo).to eq(30)
+    expect(guerrero.potencial_defensivo).to eq(10)
 
     espadachin.set_method(:potencial_ofensivo, proc {
       @potencial_ofensivo + self.potencial_espada * self.habilidad
     })
 
-    expect(espadachin.potencial_ofensivo).to eq(45)
+    expect(espadachin.potencial_ofensivo).to eq(55)
     expect(otro_guerrero.potencial_defensivo).to eq(10)
 
     espadachin.atacar_a(otro_guerrero)
 
     #Aca es donde esta el problema
-    expect(otro_guerrero.energia).to eq(75) # Falla. Da 60 porque potenical ofensivo en vez de ser 45 es nuevamente 30 (que es el potencial ofensivo de guerrero)
+    expect(otro_guerrero.energia).to eq(35) # Falla. Da 60 porque potenical ofensivo en vez de ser 45 es nuevamente 30 (que es el potencial ofensivo de guerrero)
   end
 
 end
