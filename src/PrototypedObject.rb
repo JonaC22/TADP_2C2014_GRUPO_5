@@ -31,12 +31,20 @@ module Observable
 
 end
 
+module Existente
+
+  def metodo_ya_definido(un_metodo)
+    self.singleton_methods.include? un_metodo
+  end
+
+end
 
 
 class PrototypedObject
 
   include Conversiones
   include Observable
+  include Existente
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs        #Lista de procedimientos . No estan bindeados, son los procs puros
@@ -49,7 +57,9 @@ class PrototypedObject
   def set_method nombre_metodo, accion
     self.agregar_a_lista_de_procs(nombre_metodo,accion)
     define_singleton_method(nombre_metodo,accion)
-    self.interesados.each { |un_interesado| un_interesado.set_method(nombre_metodo,accion)} #Si tiene prototipos le agrega los metodos
+    self.interesados.each { |un_interesado| if (not(un_interesado.metodo_ya_definido(nombre_metodo)))
+              un_interesado.set_method(nombre_metodo,accion)
+              end } #Si tiene prototipos le agrega los metodos
   end
 
 
@@ -57,7 +67,9 @@ class PrototypedObject
   def set_property nombre_atributo, valor
     instance_variable_set("@#{nombre_atributo}", valor) #define el atributo y le setea el valor
     self.singleton_class.send(:attr_accessor, nombre_atributo) #crea los getters y setters del atributo para solo la instancia del objeto
-    self.interesados.each { |un_interesado| un_interesado.set_property(nombre_atributo,valor) } #Si tiene prototipos le agrega los atributos
+    self.interesados.each { |un_interesado| if (not(un_interesado.instance_variable_defined?("@#{nombre_atributo}")))
+                                              un_interesado.set_property(nombre_atributo,valor) #Si tiene prototipos le agrega los atributos
+                                            end }
   end
 
 
@@ -65,7 +77,9 @@ class PrototypedObject
 
   def set_prototype un_prototipo
 
-    un_prototipo.procs.each { |proc| self.set_method(proc.name,proc.accion)}
+    un_prototipo.procs.each { |proc| if (not(self.metodo_ya_definido(proc.name)))
+                                       self.set_method(proc.name,proc.accion)
+                                     end}
 
     un_prototipo.instance_variables.each { |una_property|
       if (not(self.instance_variable_defined?(una_property)))
@@ -77,4 +91,13 @@ class PrototypedObject
     un_prototipo.interesados << self
   end
 
+end
+
+#A partir de aca esta incompleto
+class PrototypedConstructor
+  def PrototypedConstructor.new(prototipo)
+    nuevo = PrototypedObject.new
+    nuevo.set_prototype prototipo
+    nuevo
+  end
 end

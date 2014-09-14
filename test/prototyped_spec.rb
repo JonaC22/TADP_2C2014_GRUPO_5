@@ -127,4 +127,43 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(35) # Falla. Da 60 porque potenical ofensivo en vez de ser 45 es nuevamente 30 (que es el potencial ofensivo de guerrero)
   end
 
+  it 'metodos redefinidos no son afectados' do
+    guerrero = PrototypedObject.new
+    guerrero.set_property(:energia,100)
+    guerrero.set_property(:potencial_ofensivo,30)
+    guerrero.set_property(:potencial_defensivo,10)
+
+    guerrero.set_method(:atacar_a,
+                        proc {
+                            |otro_guerrero|
+                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+                          end
+                        });
+
+    guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
+
+    espadachin = PrototypedObject.new
+
+    espadachin.set_prototype(guerrero)
+    espadachin.set_property(:habilidad, 0.5)
+    espadachin.set_property(:potencial_espada, 30)
+    espadachin.energia = 130
+    espadachin.potencial_ofensivo = 40
+    espadachin.potencial_defensivo = 120
+
+    espadachin.set_method(:potencial_ofensivo, proc {
+      @potencial_ofensivo + self.potencial_espada * self.habilidad
+    })
+
+    expect(espadachin.potencial_ofensivo).to eq(55)
+
+    guerrero.set_method(:potencial_ofensivo,proc{1000})
+
+    expect(espadachin.potencial_ofensivo).to eq(55)
+    expect(guerrero.potencial_ofensivo).to eq(1000)
+
+
+
+  end
 end
