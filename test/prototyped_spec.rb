@@ -163,7 +163,29 @@ describe 'Test de prototypes objects' do
     expect(espadachin.potencial_ofensivo).to eq(55)
     expect(guerrero.potencial_ofensivo).to eq(1000)
 
+  end
 
+  it 'probando constructor' do
+    guerrero = PrototypedObject.new
+    guerrero.set_property(:energia,100)
+    guerrero.set_property(:potencial_ofensivo,30)
+    guerrero.set_property(:potencial_defensivo,10)
 
+    guerrero.set_method(:atacar_a,
+                        proc {
+                            |otro_guerrero|
+                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+                          end
+                        });
+
+    guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
+
+    Guerrero = PrototypedConstructor.new(guerrero)
+
+    un_guerrero = Guerrero.new({energia: 100, potencial_ofensivo: 50, potencial_defensivo: 40})
+    expect(un_guerrero.energia).to eq(100)
+    expect(un_guerrero.potencial_ofensivo).to eq(50)
+    expect(un_guerrero.potencial_defensivo).to eq(40)
   end
 end
