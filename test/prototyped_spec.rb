@@ -165,7 +165,8 @@ describe 'Test de prototypes objects' do
 
   end
 
-  it 'probando constructor' do
+
+  it 'probando constructor copy' do
     guerrero = PrototypedObject.new
     guerrero.set_property(:energia,100)
     guerrero.set_property(:potencial_ofensivo,30)
@@ -181,11 +182,19 @@ describe 'Test de prototypes objects' do
 
     guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
 
-    Guerrero = PrototypedConstructor.new(guerrero)
 
-    un_guerrero = Guerrero.new({energia: 100, potencial_ofensivo: 50, potencial_defensivo: 40})
+    expect(guerrero.energia).to eq(100)
+    expect(guerrero.potencial_ofensivo).to eq(30)
+    expect(guerrero.potencial_defensivo).to eq(10)
+
+    Guerrero = PrototypedConstructor.copy(guerrero)
+
+    un_guerrero = Guerrero.new
+
     expect(un_guerrero.energia).to eq(100)
-    expect(un_guerrero.potencial_ofensivo).to eq(50)
-    expect(un_guerrero.potencial_defensivo).to eq(40)
+    expect(un_guerrero.potencial_ofensivo).to eq(30)
+    expect(un_guerrero.potencial_defensivo).to eq(10)
+
+
   end
 end
