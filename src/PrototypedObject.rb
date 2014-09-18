@@ -125,10 +125,15 @@ class PrototypedObject
      @extension = nil
   end
 
+  def self.nuevo &block
+    instancia = self.new
+    instancia.instance_eval &block
+    instancia
+  end
+
   def new(*mapa)
     if mapa.empty?
-        self.copiar_estado()
-        self
+      self.copiar_estado
     else
       unless self.extension != nil
         atributos = mapa[0].keys
@@ -140,11 +145,9 @@ class PrototypedObject
         atributos_extension.keys.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
         mapa.unshift(self)
         extension.call(mapa)
-        self
       end
-      self
     end
-
+    self
   end
 
   def extended &bloque

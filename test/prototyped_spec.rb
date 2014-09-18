@@ -302,4 +302,24 @@ describe 'Test de prototypes objects' do
     guerrero.atacar_a otro_guerrero
     expect(otro_guerrero.energia).to eq(80)
   end
+
+  it 'Constructor con azucar sintactico funciona bien' do
+    guerrero = PrototypedObject.nuevo {
+      self.energia = 100
+      self.potencial_ofensivo = 30
+      self.potencial_defensivo = 10
+      self.atacar_a = proc {
+                          |otro_guerrero|
+                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+                          end
+                      }
+      self.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
+    }
+
+    expect(guerrero.energia).to eq(100)
+    expect(guerrero.potencial_ofensivo).to eq(30)
+    expect(guerrero.potencial_defensivo).to eq(10)
+    expect(guerrero.respond_to? :atacar_a).to eq(true)
+  end
 end
