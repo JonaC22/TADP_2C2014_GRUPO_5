@@ -190,7 +190,7 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(55)
   end
 
-  it 'Constructor funciona bien' do
+  it 'Constructor basico funciona bien' do
 
     guerrero = PrototypedObject.new
     guerrero.set_property(:energia,100)
@@ -207,7 +207,7 @@ describe 'Test de prototypes objects' do
 
   end
 
-  it 'probando constructor copy' do
+  it 'Constructor copy funciona bien' do
     guerrero = PrototypedObject.new
     guerrero.set_property(:energia,100)
     guerrero.set_property(:potencial_ofensivo,30)
@@ -235,10 +235,10 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(100)
     expect(otro_guerrero.potencial_ofensivo).to eq(30)
     expect(otro_guerrero.potencial_defensivo).to eq(10)
-
+    expect(otro_guerrero.respond_to?(:recibe_danio)).to eq(true)
   end
 
-  it 'probando constructor extended' do
+  it 'Constructor extended funciona bien' do
     guerrero = PrototypedObject.new
     guerrero.set_property(:energia,100)
     guerrero.set_property(:potencial_ofensivo,30)
@@ -277,5 +277,29 @@ describe 'Test de prototypes objects' do
     expect(espadachin.potencial_ofensivo).to eq(45)
     expect(espadachin.potencial_defensivo).to eq(10)
 
+  end
+
+  it 'Azucar sintactico, deberia poder agregar atributos y metodos dinamicamente' do
+    guerrero = PrototypedObject.new
+    guerrero.energia = 100
+    expect(guerrero.energia).to eq(100)
+
+    guerrero.potencial_defensivo = 10
+    guerrero.potencial_ofensivo = 30
+
+    guerrero.atacar_a = proc {
+                          |otro_guerrero|
+                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+                          end
+                        }
+
+    guerrero.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
+
+    expect(guerrero.respond_to? :atacar_a).to eq(true)
+    otro_guerrero = guerrero.clone
+
+    guerrero.atacar_a otro_guerrero
+    expect(otro_guerrero.energia).to eq(80)
   end
 end

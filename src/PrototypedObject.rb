@@ -95,6 +95,18 @@ module Prototyped
     un_prototipo.interesados << self
     self.prototipo =  un_prototipo
   end
+
+  def method_missing(simbolo, *argumentos, &bloque)
+    if argumentos.at(0).is_a?(Comparable)
+      self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
+    else
+        if argumentos.at(0).is_a?(Proc)
+          self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
+        else
+          super
+        end
+    end
+  end
 end
 
 class PrototypedObject
@@ -143,7 +155,6 @@ class PrototypedObject
   end
 end
 
-#A partir de aca esta incompleto
 class PrototypedConstructor
   def self.new(prototipo)
     nuevo = (PrototypedObject.new)
