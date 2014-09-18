@@ -61,7 +61,7 @@ module Observable
     }
   end
 
-  def copiar_estado(un_prototipo)
+  def copiar_estado()
     self.prototipo.instance_variables.each { |atributo|
       unless self.es_un_attr_privado(atributo)
         instance_variable_set(atributo, prototipo.instance_variable_get(atributo))
@@ -102,25 +102,42 @@ class PrototypedObject
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
-                :prototipo
+                :prototipo,
+                :extension
   def initialize
      @interesados = []
      @procs = []
+     @extension = nil
   end
 
   def new(*mapa)
     if mapa.empty?
-        self.copiar_estado(self.prototipo)
+        self.copiar_estado()
         self
     else
-      atributos = mapa[0].keys
-      valores = mapa[0].values
-      atributos.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
+      unless self.extension != nil
+        atributos = mapa[0].keys
+        valores = mapa[0].values
+        atributos.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
+      else
+        atributos_extension = mapa.shift
+        valores = atributos_extension.values
+        atributos_extension.keys.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
+        mapa.unshift(self)
+        extension.call(mapa)
+        self
+      end
       self
     end
 
   end
 
+  def extended &bloque
+    extendido = PrototypedObject.new
+    extendido.set_prototype(self.prototipo)
+    extendido.extension = bloque
+    extendido
+  end
 end
 
 #A partir de aca esta incompleto
@@ -135,9 +152,7 @@ class PrototypedConstructor
      PrototypedConstructor.new(prototipo)
   end
 
-  def PrototypedConstructor.extended(prototipo)
 
-  end
 
 end
 

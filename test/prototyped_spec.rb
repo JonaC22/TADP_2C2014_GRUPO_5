@@ -189,12 +189,52 @@ describe 'Test de prototypes objects' do
 
     Guerrero = PrototypedConstructor.copy(guerrero)
 
-    un_guerrero = Guerrero.new
+    otro_guerrero = Guerrero.new
 
-    expect(un_guerrero.energia).to eq(100)
-    expect(un_guerrero.potencial_ofensivo).to eq(30)
-    expect(un_guerrero.potencial_defensivo).to eq(10)
+    expect(otro_guerrero.energia).to eq(100)
+    expect(otro_guerrero.potencial_ofensivo).to eq(30)
+    expect(otro_guerrero.potencial_defensivo).to eq(10)
 
+  end
+
+  it 'probando constructor extended' do
+    guerrero = PrototypedObject.new
+    guerrero.set_property(:energia,100)
+    guerrero.set_property(:potencial_ofensivo,30)
+    guerrero.set_property(:potencial_defensivo,10)
+
+    guerrero.set_method(:atacar_a,
+                        proc {
+                            |otro_guerrero|
+                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+                          end
+                        });
+
+    guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
+
+
+    expect(guerrero.energia).to eq(100)
+    expect(guerrero.potencial_ofensivo).to eq(30)
+    expect(guerrero.potencial_defensivo).to eq(10)
+
+    Guerrero = PrototypedConstructor.copy(guerrero)
+
+    Espadachin = Guerrero.extended {
+      |espadachin, habilidad, potencial_espada|
+      espadachin.set_property(:habilidad, habilidad)
+      espadachin.set_property(:potencial_espada, potencial_espada)
+
+      espadachin.set_method(:potencial_ofensivo, proc{
+        @potencial_ofensivo + self.potencial_espada * self.habilidad
+      })
+    }
+
+    espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
+
+    expect(espadachin.energia).to eq(100)
+    expect(espadachin.potencial_ofensivo).to eq(45)
+    expect(espadachin.potencial_defensivo).to eq(10)
 
   end
 end
