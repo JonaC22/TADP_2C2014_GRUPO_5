@@ -47,14 +47,17 @@ module Observable
   end
 
   def setear_metodos_del_prototipo(un_prototipo)
-  un_prototipo.procs.each { |proc| unless self.metodo_ya_definido(proc)
-                                     self.set_method(proc.name,proc.accion)
-                                   end
+  un_prototipo.procs.each {
+    |proc|
+    unless self.metodo_ya_definido(proc)
+      self.set_method(proc.name,proc.accion)
+    end
   }
   end
 
   def setear_propertys_del_prototipo(un_prototipo)
-    un_prototipo.instance_variables.each { |una_property|
+    un_prototipo.instance_variables.each {
+      |una_property|
       unless  self.instance_variable_defined?(una_property)
         self.set_property(self.quitar_arroba(una_property),nil)
       end
@@ -142,17 +145,15 @@ end
 
 #A partir de aca esta incompleto
 class PrototypedConstructor
-  def PrototypedConstructor.new(prototipo)
-    nuevo = PrototypedObject.new
+  def self.new(prototipo)
+    nuevo = (PrototypedObject.new)
     nuevo.set_prototype prototipo
     nuevo
   end
 
-  def PrototypedConstructor.copy(prototipo)
-     PrototypedConstructor.new(prototipo)
+  def self.copy(prototipo)
+     self.new(prototipo)
   end
-
-
 
 end
 

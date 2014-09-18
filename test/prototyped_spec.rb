@@ -190,6 +190,23 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(55)
   end
 
+  it 'Constructor funciona bien' do
+
+    guerrero = PrototypedObject.new
+    guerrero.set_property(:energia,100)
+    guerrero.set_property(:potencial_ofensivo,30)
+    guerrero.set_property(:potencial_defensivo,10)
+
+    Guerrero = PrototypedConstructor.new(guerrero)
+
+    un_guerrero = Guerrero.new(
+        {energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}
+    )
+
+    expect(un_guerrero.potencial_ofensivo).to eq(30)
+
+  end
+
   it 'probando constructor copy' do
     guerrero = PrototypedObject.new
     guerrero.set_property(:energia,100)
