@@ -94,8 +94,7 @@ describe 'Test de prototypes objects' do
 
     guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
 
-    otro_guerrero = guerrero.clone #clone es un metodo que ya viene definido en Ruby
-    guerrero.atacar_a otro_guerrero
+    otro_guerrero = guerrero.clone
 
     espadachin = PrototypedObject.new
 
@@ -119,12 +118,11 @@ describe 'Test de prototypes objects' do
     })
 
     expect(espadachin.potencial_ofensivo).to eq(55)
+    expect(otro_guerrero.energia).to eq(100)
     expect(otro_guerrero.potencial_defensivo).to eq(10)
 
-    espadachin.atacar_a(otro_guerrero)
-
-    #Aca es donde esta el problema
-    expect(otro_guerrero.energia).to eq(35) # Falla. Da 60 porque potenical ofensivo en vez de ser 45 es nuevamente 30 (que es el potencial ofensivo de guerrero)
+    espadachin.atacar_a(otro_guerrero) #100 - (55 - 10)
+    expect(otro_guerrero.energia).to eq(55)
   end
 
   it 'metodos redefinidos no son afectados' do
