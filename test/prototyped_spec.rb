@@ -192,18 +192,22 @@ describe 'Test de prototypes objects' do
 
   it 'Constructor basico funciona bien' do
 
-    guerrero = PrototypedObject.new
-    guerrero.set_property(:energia,100)
-    guerrero.set_property(:potencial_ofensivo,30)
-    guerrero.set_property(:potencial_defensivo,10)
+    pipe = PrototypedObject.new
+    pipe.set_property(:energia,100)
+    pipe.set_property(:potencial_ofensivo,30)
+    pipe.set_property(:potencial_defensivo,10)
 
-    Guerrero = PrototypedConstructor.new(guerrero)
+    Guerrero = PrototypedConstructor.new(pipe)
 
-    un_guerrero = Guerrero.new(
+    julian = Guerrero.new(
         {energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}
     )
 
-    expect(un_guerrero.potencial_ofensivo).to eq(30)
+    expect(julian.energia).to eq(100)
+    expect(julian.potencial_ofensivo).to eq(30)
+    expect(julian.potencial_defensivo).to eq(10)
+
+
 
   end
 
@@ -304,7 +308,7 @@ describe 'Test de prototypes objects' do
   end
 
   it 'Constructor con azucar sintactico funciona bien' do
-    guerrero = PrototypedObject.nuevo {
+    guerrero = PrototypedObject.new {
       self.energia = 100
       self.potencial_ofensivo = 30
       self.potencial_defensivo = 10

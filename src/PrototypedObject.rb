@@ -4,7 +4,7 @@ require 'ostruct'
 module Commons
 
   def poner_igual una_prop
-   (quitar_arroba(una_prop).to_s+"=").to_sym
+    (quitar_arroba(una_prop).to_s+"=").to_sym
   end
 
   def quitar_arroba prop
@@ -31,15 +31,15 @@ module Observable
   include Commons
 
   def agregar_a_lista_de_procs(nombre,procedimiento)
-     m = OpenStruct.new({:name => nombre,:accion => procedimiento})
-     self.procs << m
+    m = OpenStruct.new({:name => nombre,:accion => procedimiento})
+    self.procs << m
   end
 
   def agregar_metodo_a_interesados(nombre_metodo,accion)
     self.interesados.each { |un_interesado| unless un_interesado.metodo_ya_definido(nombre_metodo)
-                                                     un_interesado.set_method(nombre_metodo,accion)
+                                              un_interesado.set_method(nombre_metodo,accion)
                                             end
-                         }
+    }
   end
 
   def agregar_property_a_interesados(nombre_atributo)
@@ -47,30 +47,24 @@ module Observable
   end
 
   def setear_metodos_del_prototipo(un_prototipo)
-  un_prototipo.procs.each {
-    |proc|
-    unless self.metodo_ya_definido(proc)
-      self.set_method(proc.name,proc.accion)
-    end
-  }
+    un_prototipo.procs.each {
+        |proc|
+      unless self.metodo_ya_definido(proc)
+        self.set_method(proc.name,proc.accion)
+      end
+    }
   end
 
   def setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.instance_variables.each {
-      |una_property|
+        |una_property|
       unless  self.instance_variable_defined?(una_property)
         self.set_property(self.quitar_arroba(una_property),nil)
       end
     }
   end
 
-  def copiar_estado()
-    self.prototipo.instance_variables.each { |atributo|
-      unless self.es_un_attr_privado(atributo)
-        instance_variable_set(atributo, prototipo.instance_variable_get(atributo))
-      end
-    }
-  end
+
 
 end
 
@@ -93,18 +87,18 @@ module Prototyped
     self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
-    self.prototipo =  un_prototipo
+    self.prototype =  un_prototipo
   end
 
   def method_missing(simbolo, *argumentos, &bloque)
     if argumentos.at(0).is_a?(Comparable)
       self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
     else
-        if argumentos.at(0).is_a?(Proc)
-          self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
-        else
-          super
-        end
+      if argumentos.at(0).is_a?(Proc)
+        self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
+      else
+        super
+      end
     end
   end
 end
@@ -117,57 +111,83 @@ class PrototypedObject
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
-                :prototipo,
-                :extension
+                :prototype
   def initialize
-     @interesados = []
-     @procs = []
-     @extension = nil
+    @interesados = []
+    @procs = []
   end
 
-  def self.nuevo &block
-    instancia = self.new
-    instancia.instance_eval &block
-    instancia
-  end
-
-  def new(*mapa)
-    if mapa.empty?
-      self.copiar_estado
-    else
-      unless self.extension != nil
-        atributos = mapa[0].keys
-        valores = mapa[0].values
-        atributos.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
-      else
-        atributos_extension = mapa.shift
-        valores = atributos_extension.values
-        atributos_extension.keys.each { |un_atributo| self.instance_variable_set("@#{un_atributo}", valores.shift) }
-        mapa.unshift(self)
-        extension.call(mapa)
-      end
+  def self.new &block
+    instancia = super
+    unless block==nil
+      instancia.instance_eval &block
     end
-    self
-  end
-
-  def extended &bloque
-    extendido = PrototypedObject.new
-    extendido.set_prototype(self.prototipo)
-    extendido.extension = bloque
-    extendido
+    instancia
   end
 end
 
 class PrototypedConstructor
-  def self.new(prototipo)
-    nuevo = (PrototypedObject.new)
-    nuevo.set_prototype prototipo
-    nuevo
+  include Commons
+  include Observable
+
+  attr_accessor :prototype
+
+  def initialize prototipo
+    self.prototype = prototipo
   end
 
   def self.copy(prototipo)
-     self.new(prototipo)
+    PrototypedConstructorCopy.new prototipo
   end
 
+  def extended &bloque
+    PrototypedConstructorExtended.new self.prototype, &bloque
+  end
+
+  def new mapa
+    nuevo = PrototypedObject.new
+    nuevo.set_prototype self.prototype
+    atributos = mapa.keys
+    valores = mapa.values
+    atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+    nuevo
+  end
 end
 
+class PrototypedConstructorCopy < PrototypedConstructor
+  def new
+    nuevo = PrototypedObject.new
+    nuevo.set_prototype self.prototype
+    self.copiar_estado_a(nuevo)
+  end
+
+  def copiar_estado_a(instancia)
+    self.prototype.instance_variables.each { |atributo|
+      unless self.es_un_attr_privado(atributo)
+        instancia.instance_variable_set(atributo, prototype.instance_variable_get(atributo))
+      end
+    }
+    instancia
+  end
+end
+
+
+class PrototypedConstructorExtended < PrototypedConstructor
+  attr_accessor :extension
+
+  def initialize prototipo, &bloque
+    self.extension = bloque
+    self.prototype = prototipo
+  end
+
+  def new *args
+    extendido = PrototypedObject.new
+    extendido.set_prototype(self.prototype)
+    atributos_extension = args.shift
+    valores = atributos_extension.values
+    atributos_extension.keys.each { |un_atributo| extendido.instance_variable_set("@#{un_atributo}", valores.shift) }
+    args.unshift(extendido)
+    self.extension.call(args)
+    extendido
+  end
+end
