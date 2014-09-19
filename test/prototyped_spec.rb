@@ -347,6 +347,12 @@ describe 'Test de prototypes objects' do
       self.potencial_defensivo = un_potencial_defensivo
     end
 
+    otro_guerrero = Guerrero.new(70,40,50)
+
+    expect(otro_guerrero.energia).to eq(70)
+    expect(otro_guerrero.potencial_ofensivo).to eq(40)
+    expect(otro_guerrero.potencial_defensivo).to eq(50)
+    expect(otro_guerrero.respond_to? :atacar_a).to eq(true)
   end
 
   it 'azucar sintactico al constructor 2' do
