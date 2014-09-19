@@ -307,7 +307,7 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(80)
   end
 
-  it 'Constructor con azucar sintactico funciona bien' do
+  it 'Crear un prototipo con azucar sintactico funciona bien' do
     guerrero = PrototypedObject.new {
       self.energia = 100
       self.potencial_ofensivo = 30
