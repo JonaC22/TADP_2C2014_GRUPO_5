@@ -112,25 +112,21 @@ class PrototypedObject
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
                 :prototype
-  def initialize
-    @interesados = []
-    @procs = []
+
+  def initialize &block
+    super
+    self.interesados = []
+    self.procs = []
+    self.instance_eval &block if block_given?
   end
 
-  def self.new &block
-    instancia = super
-    unless block==nil
-      instancia.instance_eval &block
-    end
-    instancia
-  end
 end
 
 class PrototypedConstructor
   include Commons
   include Observable
 
-  attr_accessor :prototype
+  attr_accessor :prototype, :block_properties
 
   def initialize prototipo
     self.prototype = prototipo
@@ -144,14 +140,31 @@ class PrototypedConstructor
     PrototypedConstructorExtended.new self.prototype, &bloque
   end
 
-  def new mapa
+  def self.create &block
+    prototipo = PrototypedObject.new
+    prototipo.instance_eval &block
+    instancia = PrototypedConstructor.new(prototipo)
+    instancia
+  end
+
+  def with &bloque
+    self.block_properties = bloque
+    self
+  end
+
+  def new *args
     nuevo = PrototypedObject.new
     nuevo.set_prototype self.prototype
-    atributos = mapa.keys
-    valores = mapa.values
-    atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+    unless (not(args[0].is_a? Hash) && args.length >1)
+      atributos = args[0].keys
+      valores = args[0].values
+      atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+    else
+      nuevo.instance_exec(args) &self.block_properties
+    end
     nuevo
   end
+
 end
 
 class PrototypedConstructorCopy < PrototypedConstructor
