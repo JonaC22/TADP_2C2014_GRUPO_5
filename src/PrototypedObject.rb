@@ -101,6 +101,15 @@ module Prototyped
       end
     end
   end
+
+  # def method_missing sym, *args
+  #   if sym =~ /^(\w+)=$/ and args[0].is_a?Proc
+  #     self.set_method($1,args[0])
+  #   elsif set_property($1,args[0])
+  #   else
+  #     instance_variable_get "@#{sym}"
+  #   end
+  # end
 end
 
 class PrototypedObject
@@ -112,7 +121,7 @@ class PrototypedObject
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
                 :prototype
-  
+
   def initialize &block
     super
     self.interesados = []
@@ -146,9 +155,13 @@ class PrototypedConstructor
     instancia
   end
 
-  def with &bloque
-    self.block_properties = bloque
+  def with &block
+    self.block_properties = block
     self
+  end
+
+  def with_properties properties
+
   end
 
   def new *args
@@ -159,7 +172,8 @@ class PrototypedConstructor
       valores = args[0].values
       atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
     else
-      nuevo.instance_exec(args) &self.block_properties
+      bloque = self.block_properties
+      nuevo.instance_exec(args,&bloque)
     end
     nuevo
   end
