@@ -112,14 +112,13 @@ class PrototypedObject
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
                 :prototype
-
+  
   def initialize &block
     super
     self.interesados = []
     self.procs = []
     self.instance_eval &block if block_given?
   end
-
 end
 
 class PrototypedConstructor
