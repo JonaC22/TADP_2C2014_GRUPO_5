@@ -23,8 +23,22 @@ module Commons
     atributo == :@interesados || atributo == :@procs || atributo == :@prototipos
   end
 
+  def metodo_anterior
+    caller_locations(1,1)[0].label.to_sym
+  end
 
+  # set_trace_func proc { |event, file, line, id, binding, classname|
+  #   # only interested in events of type 'call' (Ruby method calls)
+  #   # see the docs for set_trace_func for other supported event types
+  #   if event == 'call'
+  #     if
+  #
+  #     end
+  #   end
+  # }
 end
+
+
 
 module Observable
 
@@ -84,21 +98,15 @@ module Prototyped
 
 
   def set_prototype un_prototipo
-    self.setear_comportamiento_prototipo(un_prototipo)
-    self.prototype = un_prototipo
-  end
-
-  def setear_comportamiento_prototipo(un_prototipo)
     self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
+    self.prototypes << un_prototipo
   end
 
   def set_prototypes protos
-    protos.each { |proto|
-      self.setear_comportamiento_prototipo(proto)
-      self.prototypes.push proto
-    }
+    protos.each { |proto|self.set_prototype(proto)}
+    self.prototypes + protos
   end
 
   def method_missing(simbolo, *argumentos, &bloque)
@@ -112,6 +120,16 @@ module Prototyped
       end
     end
   end
+
+
+  # def method_missing sym, *args
+  #   if sym =~ /^(\w+)=$/ and args[0].is_a?Proc
+  #     self.set_method($1,args[0])
+  #   elsif set_property($1,args[0])
+  #   else
+  #     instance_variable_get "@#{sym}"
+  #   end
+  # end
 end
 
 class PrototypedObject
@@ -122,22 +140,21 @@ class PrototypedObject
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs, #Lista de procedimientos . No estan bindeados, son los procs puros
-                :prototype,
                 :prototypes
 
   def initialize &block
     super
     self.interesados = []
     self.procs = []
-    self.prototype = nil
     self.prototypes = []
     self.instance_eval &block if block_given?
   end
 
   def call_next
-    elegidos = self.prototypes.select{ |proto|  proto.respond_to? __method__  }
-    elegidos.shift.send(__method__) #Hay que ver como obtener el nombre del metodo anterior a este
+    elegidos = self.prototypes.select{ |proto|  proto.respond_to? caller_locations(1,1)[0].label.to_sym  }
+    elegidos.shift.send(caller_locations(1,1)[0].label.to_sym) #Hay que ver como obtener el nombre del metodo anterior a este
   end
+
 end
 
 class PrototypedConstructor
@@ -193,8 +210,10 @@ class PrototypedConstructor
              nuevo.send("#{key}=", value)
         }
       else
-        bloque = self.block_properties
-        nuevo.instance_exec(args, &bloque)
+        if not(args.empty?)
+          bloque = self.block_properties
+          nuevo.instance_exec(args, &bloque)
+        end
       end
     end
     nuevo
@@ -245,8 +264,9 @@ class PrototypedConstructorExtended < PrototypedConstructor
     atributos_extension = args.shift
     valores = atributos_extension.values
     atributos_extension.keys.each { |un_atributo| extendido.instance_variable_set("@#{un_atributo}", valores.shift) }
-    args.unshift(extendido)
-    self.extension.call(args)
+    #args.unshift(extendido)
+    #self.extension.call(args)
+    extendido.instance_exec(args, &self.extension)
     extendido
   end
 end

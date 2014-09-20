@@ -268,46 +268,46 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.respond_to?(:recibe_danio)).to eq(true)
   end
 
-  it 'Constructor extended funciona bien' do
-    guerrero = PrototypedObject.new
-    guerrero.set_property(:energia,100)
-    guerrero.set_property(:potencial_ofensivo,30)
-    guerrero.set_property(:potencial_defensivo,10)
-
-    guerrero.set_method(:atacar_a,
-                        proc {
-                            |otro_guerrero|
-                          if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
-                            otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
-                          end
-                        });
-
-    guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
-
-
-    expect(guerrero.energia).to eq(100)
-    expect(guerrero.potencial_ofensivo).to eq(30)
-    expect(guerrero.potencial_defensivo).to eq(10)
-
-    Guerrero = PrototypedConstructor.copy(guerrero)
-
-    Espadachin = Guerrero.extended {
-      |espadachin, habilidad, potencial_espada|
-      espadachin.set_property(:habilidad, habilidad)
-      espadachin.set_property(:potencial_espada, potencial_espada)
-
-      espadachin.set_method(:potencial_ofensivo, proc{
-        @potencial_ofensivo + self.potencial_espada * self.habilidad
-      })
-    }
-
-    espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
-
-    expect(espadachin.energia).to eq(100)
-    expect(espadachin.potencial_ofensivo).to eq(45)
-    expect(espadachin.potencial_defensivo).to eq(10)
-
-  end
+  # it 'Constructor extended funciona bien' do
+  #   guerrero = PrototypedObject.new
+  #   guerrero.set_property(:energia,100)
+  #   guerrero.set_property(:potencial_ofensivo,30)
+  #   guerrero.set_property(:potencial_defensivo,10)
+  #
+  #   guerrero.set_method(:atacar_a,
+  #                       proc {
+  #                           |otro_guerrero|
+  #                         if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+  #                           otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+  #                         end
+  #                       });
+  #
+  #   guerrero.set_method(:recibe_danio, proc {|impacto| self.energia = self.energia - impacto})
+  #
+  #
+  #   expect(guerrero.energia).to eq(100)
+  #   expect(guerrero.potencial_ofensivo).to eq(30)
+  #   expect(guerrero.potencial_defensivo).to eq(10)
+  #
+  #   Guerrero = PrototypedConstructor.copy(guerrero)
+  #
+  #   Espadachin = Guerrero.extended {
+  #     |espadachin, habilidad, potencial_espada|
+  #     espadachin.set_property(:habilidad, habilidad)
+  #     espadachin.set_property(:potencial_espada, potencial_espada)
+  #
+  #     espadachin.set_method(:potencial_ofensivo, proc{
+  #       @potencial_ofensivo + self.potencial_espada * self.habilidad
+  #     })
+  #   }
+  #
+  #   espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
+  #
+  #   expect(espadachin.energia).to eq(100)
+  #   expect(espadachin.potencial_ofensivo).to eq(45)
+  #   expect(espadachin.potencial_defensivo).to eq(10)
+  #
+  # end
 
   it 'Azucar sintactico, deberia poder agregar atributos y metodos dinamicamente' do
     guerrero = PrototypedObject.new
@@ -316,6 +316,8 @@ describe 'Test de prototypes objects' do
 
     guerrero.potencial_defensivo = 10
     guerrero.potencial_ofensivo = 30
+
+    guerrero.potencial_ofensivo = proc{@potencial_ofensivo + 10}
 
     guerrero.atacar_a = proc {
                           |otro_guerrero|
@@ -429,11 +431,9 @@ describe 'Test de prototypes objects' do
           otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
         end}
       self.recibe_danio = proc{|impacto| self.energia = self.energia - impacto}
-    }.with {
-        |una_energia, un_potencial_ofensivo, un_potencial_defensivo|
-      self.energia = una_energia
-      self.potencial_ofensivo = un_potencial_ofensivo
-      self.potencial_defensivo = un_potencial_defensivo
+      self.energia = 100
+      self.potencial_ofensivo = 200
+      self.potencial_defensivo = 10
     }
 
     Espadachin = Guerrero.extended {
@@ -449,74 +449,74 @@ describe 'Test de prototypes objects' do
     espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
 
     expect(espadachin.energia).to eq(100)
+    expect(espadachin.recibe_danio(10)).to eq(90)
     expect(espadachin.potencial_ofensivo).to eq(45)
     expect(espadachin.potencial_defensivo).to eq(10)
 
   end
 
-  it 'Call next funciona correctamente' do
-    Guerrero = PrototypedConstructor.create {
-      self.atacar_a = proc{|otro_guerrero|
+  it 'Implementacion siguiente' do
+
+    guerrero = PrototypedObject.new {
+      self.energia = 100
+      self.potencial_ofensivo = 30
+      self.potencial_defensivo = 10
+      self.atacar_a = proc {
+          |otro_guerrero|
         if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
           otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
-        end}
-      self.recibe_danio = proc{|impacto| self.energia = self.energia - impacto}
-    }.with {
-        |una_energia, un_potencial_ofensivo, un_potencial_defensivo|
-      self.energia = una_energia
-      self.potencial_ofensivo = un_potencial_ofensivo
-      self.potencial_defensivo = un_potencial_defensivo
+        end
+      }
+      self.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
     }
 
+    Guerrero = PrototypedConstructor.new(guerrero)
+
     Espadachin = Guerrero.extended {
-        |una_habilidad, un_potencial_espada|
+      |una_habilidad, un_potencial_espada|
       self.habilidad = una_habilidad
       self.potencial_espada = un_potencial_espada
 
-      self.potencial_ofensivo = proc{
+      self.potencial_ofensivo = proc {
         call_next + self.potencial_espada * self.habilidad
       }
     }
-
     espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
 
     expect(espadachin.energia).to eq(100)
     expect(espadachin.potencial_ofensivo).to eq(45)
     expect(espadachin.potencial_defensivo).to eq(10)
 
+
   end
 
-  it 'Deberia recibir comportamiento de multiples prototipos' do
-    proto_atacante = PrototypedObject.new
-    proto_defensor = PrototypedObject.new
+  it 'prototipos multiples' do
+    Atacante = PrototypedConstructor.create {
+      self.super_ataque_a = proc{|otro_guerrero|
+        otro_guerrero.energia = otro_guerrero.energia - 10
+      }
+    }.with_properties([:potencial_ofensivo])
 
-    proto_defensor.energia = 100
+    proto_atacante = Atacante.new(800)
 
-    expect(proto_defensor.energia).to eq(100)
-
-    proto_defensor.potencial_defensivo = 10
-    proto_atacante.potencial_ofensivo = 30
-
-    proto_atacante.atacar_a = proc {
-        |otro_guerrero|
-      if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
-        otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
-      end
+    Defensor = PrototypedConstructor.create {
+      self.curarme = proc{
+        self.energia = self.energia + 50}
     }
 
-    proto_defensor.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
+    proto_defensor = Defensor.new
 
-    guerrero = PrototypedObject.new
-
-    Guerrero = PrototypedConstructor.copy(guerrero)
-
-    un_guerrero = Guerrero.new
+    Guerrero = PrototypedConstructor.create {
+      self.atacar_a = proc{|otro_guerrero|
+        if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+          otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+        end}
+      self.recibe_danio = proc{|impacto| self.energia = self.energia - impacto}
+    }.with_properties([:energia, :potencial_ofensivo, :potencial_defensivo])
 
     Guerrero.prototype.set_prototypes([proto_atacante, proto_defensor])
+    expect(Guerrero.prototype.prototypes.length).to eq(2)
 
-    expect(un_guerrero.energia).to eq(100)
-    expect(un_guerrero.potencial_ofensivo).to eq(30)
-    expect(un_guerrero.potencial_defensivo).to eq(10)
   end
 
 end
