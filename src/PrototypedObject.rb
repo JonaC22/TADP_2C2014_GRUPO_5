@@ -87,7 +87,12 @@ module Prototyped
     self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
-    self.prototype = un_prototipo
+    self.prototypes << un_prototipo
+  end
+
+  def set_prototypes protos
+    protos.each { |proto|self.set_prototype(proto)}
+    self.prototypes + protos
   end
 
   def method_missing(simbolo, *argumentos, &bloque)
@@ -120,13 +125,19 @@ class PrototypedObject
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs, #Lista de procedimientos . No estan bindeados, son los procs puros
-                :prototype
+                :prototypes
 
   def initialize &block
     super
     self.interesados = []
     self.procs = []
+    self.prototypes = []
     self.instance_eval &block if block_given?
+  end
+
+  def call_next
+    elegidos = self.prototypes.select{ |proto|  proto.respond_to? __method__  }
+    elegidos.shift.send(__method__)
   end
 end
 
