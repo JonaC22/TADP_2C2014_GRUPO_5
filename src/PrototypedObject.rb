@@ -165,7 +165,9 @@ class PrototypedConstructor
   end
 
   def with_properties properties
-
+    instancia = PrototypedConstructorProperties.new(self.prototype)
+    instancia.properties = properties
+    instancia
   end
 
   def new *args
@@ -188,6 +190,17 @@ class PrototypedConstructor
     nuevo
   end
 
+end
+
+class PrototypedConstructorProperties < PrototypedConstructor
+  attr_accessor :properties
+
+  def new *args
+    nuevo = PrototypedObject.new
+    nuevo.set_prototype self.prototype
+    self.properties.each { |propiedad| nuevo.set_property(propiedad,args.shift)}
+    nuevo
+  end
 end
 
 class PrototypedConstructorCopy < PrototypedConstructor
