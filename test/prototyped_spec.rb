@@ -454,5 +454,69 @@ describe 'Test de prototypes objects' do
 
   end
 
+  it 'Call next funciona correctamente' do
+    Guerrero = PrototypedConstructor.create {
+      self.atacar_a = proc{|otro_guerrero|
+        if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+          otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+        end}
+      self.recibe_danio = proc{|impacto| self.energia = self.energia - impacto}
+    }.with {
+        |una_energia, un_potencial_ofensivo, un_potencial_defensivo|
+      self.energia = una_energia
+      self.potencial_ofensivo = un_potencial_ofensivo
+      self.potencial_defensivo = un_potencial_defensivo
+    }
+
+    Espadachin = Guerrero.extended {
+        |una_habilidad, un_potencial_espada|
+      self.habilidad = una_habilidad
+      self.potencial_espada = un_potencial_espada
+
+      self.potencial_ofensivo = proc{
+        call_next + self.potencial_espada * self.habilidad
+      }
+    }
+
+    espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
+
+    expect(espadachin.energia).to eq(100)
+    expect(espadachin.potencial_ofensivo).to eq(45)
+    expect(espadachin.potencial_defensivo).to eq(10)
+
+  end
+
+  it 'Deberia recibir comportamiento de multiples prototipos' do
+    proto_atacante = PrototypedObject.new
+    proto_defensor = PrototypedObject.new
+
+    proto_defensor.energia = 100
+
+    expect(proto_defensor.energia).to eq(100)
+
+    proto_defensor.potencial_defensivo = 10
+    proto_atacante.potencial_ofensivo = 30
+
+    proto_atacante.atacar_a = proc {
+        |otro_guerrero|
+      if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
+        otro_guerrero.recibe_danio(self.potencial_ofensivo - otro_guerrero.potencial_defensivo)
+      end
+    }
+
+    proto_defensor.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
+
+    guerrero = PrototypedObject.new
+
+    Guerrero = PrototypedConstructor.copy(guerrero)
+
+    un_guerrero = Guerrero.new
+
+    Guerrero.prototype.set_prototypes([proto_atacante, proto_defensor])
+
+    expect(un_guerrero.energia).to eq(100)
+    expect(un_guerrero.potencial_ofensivo).to eq(30)
+    expect(un_guerrero.potencial_defensivo).to eq(10)
+  end
 
 end
