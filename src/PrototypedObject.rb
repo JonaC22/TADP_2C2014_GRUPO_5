@@ -87,7 +87,6 @@ module Prototyped
     self.agregar_a_lista_de_procs(nombre_metodo, accion)
     define_singleton_method(nombre_metodo, accion)
     self.agregar_metodo_a_interesados(nombre_metodo, accion)
-
   end
 
   def set_property nombre_atributo, valor
@@ -98,7 +97,7 @@ module Prototyped
 
 
   def set_prototype un_prototipo
-    self.setear_metodos_del_prototipo(un_prototipo)
+    # self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
     self.prototypes << un_prototipo
@@ -106,30 +105,37 @@ module Prototyped
 
   def set_prototypes protos
     protos.each { |proto|self.set_prototype(proto)}
-    self.prototypes + protos
+    self.prototypes + proto
+
   end
 
   def method_missing(simbolo, *argumentos, &bloque)
-    if argumentos.at(0).is_a?(Comparable)
-      self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
-    else
-      if argumentos.at(0).is_a?(Proc)
-        self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
-      else
-        super
-      end
+    alguien = self.quien_entiende_metodo simbolo,argumentos.length
+    if !alguien.nil?
+      block = alguien.procs.detect{|proc|proc.name==simbolo}.accion
+      self.instance_exec(*argumentos, &block)
     end
+
   end
 
+  def quien_entiende_metodo simbolo , cantidad_argumentos
+    self.prototypes.detect {|proto| proto.respond_to?(simbolo) && proto.method(simbolo).arity == cantidad_argumentos}
+  end
 
-  # def method_missing sym, *args
-  #   if sym =~ /^(\w+)=$/ and args[0].is_a?Proc
-  #     self.set_method($1,args[0])
-  #   elsif set_property($1,args[0])
+  # if argumentos.at(0).is_a?(Comparable)
+  #   self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
+  # else
+  #   if argumentos.at(0).is_a?(Proc)
+  #     self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
   #   else
-  #     instance_variable_get "@#{sym}"
+  #     super
   #   end
   # end
+
+  def respond_to_missing?(method_name, include_private = false)
+    self.prototypes.any? {|prototype| prototype.respond_to? method_name }|| super
+  end
+
 end
 
 class PrototypedObject
@@ -140,7 +146,8 @@ class PrototypedObject
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
                 :procs, #Lista de procedimientos . No estan bindeados, son los procs puros
-                :prototypes
+                :prototypes,
+                :metodos_prototipados
 
   def initialize &block
     super

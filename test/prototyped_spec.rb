@@ -3,6 +3,29 @@ require_relative '../src/PrototypedObject'
 
 describe 'Test de prototypes objects' do
 
+  it 'blablabla' do
+    guerrero = PrototypedObject.new
+    guerrero.set_property(:fuerza,100)
+    guerrero.set_method(:dup_fuerza,proc{self.fuerza*2})
+    guerrero.set_method(:saludar,proc{"Hola"})
+    guerrero.set_method(:sumar,proc{|x| x+self.fuerza})
+
+    expect(guerrero.sumar(2)).to eq(102)
+
+    espadachin = PrototypedObject.new
+    espadachin.set_prototype(guerrero)
+
+    espadachin.fuerza = 25
+
+    expect(espadachin.sumar(5)).to eq(30)
+    expect(espadachin.fuerza).to eq(25)
+    expect(espadachin.dup_fuerza).to eq(50)
+    expect(espadachin.prototypes.length).to eq(1)
+    expect(espadachin.respond_to?(:saludar)).to eq(true)
+    expect(espadachin.saludar).to eq("Hola")
+  end
+
+
   it 'Deberia definirse un atributo dinamicamente para una instancia unica' do
 
       guerrero = PrototypedObject.new
@@ -317,7 +340,9 @@ describe 'Test de prototypes objects' do
     guerrero.potencial_defensivo = 10
     guerrero.potencial_ofensivo = 30
 
-    guerrero.potencial_ofensivo = proc{@potencial_ofensivo + 10}
+    guerrero.potencial_ofensivo = proc{10}
+
+    expect(guerrero.potencial_ofensivo).to eq(10)
 
     guerrero.atacar_a = proc {
                           |otro_guerrero|
