@@ -174,10 +174,12 @@ class PrototypedConstructor
     if (self.proc_inicializacion)
       self.proc_inicializacion.call(nuevo, *args)
     else
-      unless (not (args[0].is_a? Hash) && args.length >1)
-        atributos = args[0].keys
-        valores = args[0].values
-        atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+      unless (not (args[0].is_a? Hash) && args.length >0)
+        hash = args[0]
+        hash.each_pair {
+         |key, value|
+             nuevo.send("#{key}=", value)
+        }
       else
         bloque = self.block_properties
         nuevo.instance_exec(args, &bloque)
