@@ -422,7 +422,7 @@ describe 'Test de prototypes objects' do
     expect(atila.potencial_ofensivo).to eq(1000)
   end
 
-  it 'Obtener prototipo de un constructor' do
+  it 'Azucar sintactico constructor extended' do
     Guerrero = PrototypedConstructor.create {
       self.atacar_a = proc{|otro_guerrero|
         if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
