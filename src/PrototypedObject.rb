@@ -12,7 +12,7 @@ module Commons
   end
 
   def este_metodo_es_un_attr(un_metodo)
-    self.instance_variables.any? {|una_prop| (self.quitar_arroba(una_prop) == un_metodo) or (self.poner_igual(una_prop) == un_metodo) }
+    self.instance_variables.any? { |una_prop| (self.quitar_arroba(una_prop) == un_metodo) or (self.poner_igual(una_prop) == un_metodo) }
   end
 
   def metodo_ya_definido(un_metodo)
@@ -30,27 +30,28 @@ module Observable
 
   include Commons
 
-  def agregar_a_lista_de_procs(nombre,procedimiento)
-    m = OpenStruct.new({:name => nombre,:accion => procedimiento})
+  def agregar_a_lista_de_procs(nombre, procedimiento)
+    m = OpenStruct.new({:name => nombre, :accion => procedimiento})
     self.procs << m
   end
 
-  def agregar_metodo_a_interesados(nombre_metodo,accion)
-    self.interesados.each { |un_interesado| unless un_interesado.metodo_ya_definido(nombre_metodo)
-                                              un_interesado.set_method(nombre_metodo,accion)
-                                            end
+  def agregar_metodo_a_interesados(nombre_metodo, accion)
+    self.interesados.each { |un_interesado|
+      unless un_interesado.metodo_ya_definido(nombre_metodo)
+        un_interesado.set_method(nombre_metodo, accion)
+      end
     }
   end
 
   def agregar_property_a_interesados(nombre_atributo)
-    self.interesados.each { |un_interesado| un_interesado.set_property(nombre_atributo,nil) }
+    self.interesados.each { |un_interesado| un_interesado.set_property(nombre_atributo, nil) }
   end
 
   def setear_metodos_del_prototipo(un_prototipo)
     un_prototipo.procs.each {
         |proc|
       unless self.metodo_ya_definido(proc)
-        self.set_method(proc.name,proc.accion)
+        self.set_method(proc.name, proc.accion)
       end
     }
   end
@@ -59,20 +60,19 @@ module Observable
     un_prototipo.instance_variables.each {
         |una_property|
       unless  self.instance_variable_defined?(una_property)
-        self.set_property(self.quitar_arroba(una_property),nil)
+        self.set_property(self.quitar_arroba(una_property), nil)
       end
     }
   end
-
 
 
 end
 
 module Prototyped
   def set_method nombre_metodo, accion
-    self.agregar_a_lista_de_procs(nombre_metodo,accion)
-    define_singleton_method(nombre_metodo,accion)
-    self.agregar_metodo_a_interesados(nombre_metodo,accion)
+    self.agregar_a_lista_de_procs(nombre_metodo, accion)
+    define_singleton_method(nombre_metodo, accion)
+    self.agregar_metodo_a_interesados(nombre_metodo, accion)
 
   end
 
@@ -87,7 +87,7 @@ module Prototyped
     self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
-    self.prototype =  un_prototipo
+    self.prototype = un_prototipo
   end
 
   def method_missing(simbolo, *argumentos, &bloque)
@@ -119,7 +119,7 @@ class PrototypedObject
   include Prototyped
 
   attr_accessor :interesados, # Todas las instancias de esta clase pueden proveer prototipos a otros objetos
-                :procs,        #Lista de procedimientos . No estan bindeados, son los procs puros
+                :procs, #Lista de procedimientos . No estan bindeados, son los procs puros
                 :prototype
 
   def initialize &block
@@ -134,10 +134,14 @@ class PrototypedConstructor
   include Commons
   include Observable
 
-  attr_accessor :prototype, :block_properties
+  attr_accessor :prototype, :proc_inicializacion, :block_properties
 
-  def initialize prototipo
+  def initialize(prototipo, *args)
     self.prototype = prototipo
+    bloque = args[0]
+    if (bloque)
+      self.proc_inicializacion = bloque
+    end
   end
 
   def self.copy(prototipo)
@@ -167,13 +171,17 @@ class PrototypedConstructor
   def new *args
     nuevo = PrototypedObject.new
     nuevo.set_prototype self.prototype
-    unless (not(args[0].is_a? Hash) && args.length >1)
-      atributos = args[0].keys
-      valores = args[0].values
-      atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+    if (self.proc_inicializacion)
+      self.proc_inicializacion.call(nuevo, *args)
     else
-      bloque = self.block_properties
-      nuevo.instance_exec(args,&bloque)
+      unless (not (args[0].is_a? Hash) && args.length >1)
+        atributos = args[0].keys
+        valores = args[0].values
+        atributos.each { |un_atributo| nuevo.instance_variable_set("@#{un_atributo}", valores.shift) }
+      else
+        bloque = self.block_properties
+        nuevo.instance_exec(args, &bloque)
+      end
     end
     nuevo
   end
