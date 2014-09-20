@@ -106,15 +106,6 @@ module Prototyped
       end
     end
   end
-
-  # def method_missing sym, *args
-  #   if sym =~ /^(\w+)=$/ and args[0].is_a?Proc
-  #     self.set_method($1,args[0])
-  #   elsif set_property($1,args[0])
-  #   else
-  #     instance_variable_get "@#{sym}"
-  #   end
-  # end
 end
 
 class PrototypedObject
@@ -137,7 +128,7 @@ class PrototypedObject
 
   def call_next
     elegidos = self.prototypes.select{ |proto|  proto.respond_to? __method__  }
-    elegidos.shift.send(__method__)
+    elegidos.shift.send(__method__) #Hay que ver como obtener el nombre del metodo anterior a este
   end
 end
 
