@@ -288,7 +288,11 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.energia).to eq(100)
     expect(otro_guerrero.potencial_ofensivo).to eq(30)
     expect(otro_guerrero.potencial_defensivo).to eq(10)
-    expect(otro_guerrero.respond_to?(:recibe_danio)).to eq(true)
+    expect(guerrero.respond_to?(:recibe_danio)).to eq(true)
+    expect(otro_guerrero.prototypes.length).to eq(1)
+    # expect(otro_guerrero.prototypes.include? guerrero).to eq(true)
+    # expect(otro_guerrero.prototypes.any? {|prototype| prototype.respond_to? :recibe_danio }).to eq(true)
+    # expect(otro_guerrero.respond_to?(:recibe_danio)).to eq(true)
   end
 
   # it 'Constructor extended funciona bien' do
@@ -339,11 +343,12 @@ describe 'Test de prototypes objects' do
 
     guerrero.potencial_defensivo = 10
     guerrero.potencial_ofensivo = 30
+    expect(guerrero.potencial_ofensivo).to eq(30)
+    guerrero.potencial_ofensivo = proc{20}
 
-    guerrero.potencial_ofensivo = proc{10}
-
-    expect(guerrero.potencial_ofensivo).to eq(10)
-
+    expect(guerrero.potencial_ofensivo).to eq(20)
+    guerrero.potencial_ofensivo = 40
+    expect(guerrero.potencial_ofensivo).to eq(40)
     guerrero.atacar_a = proc {
                           |otro_guerrero|
                           if(otro_guerrero.potencial_defensivo < self.potencial_ofensivo)
@@ -355,9 +360,11 @@ describe 'Test de prototypes objects' do
 
     expect(guerrero.respond_to? :atacar_a).to eq(true)
     otro_guerrero = guerrero.clone
+    expect(otro_guerrero.energia).to eq(100)
+
 
     guerrero.atacar_a otro_guerrero
-    expect(otro_guerrero.energia).to eq(80)
+    expect(otro_guerrero.energia).to eq(70)
   end
 
   it 'Crear un prototipo con azucar sintactico funciona bien' do
@@ -471,8 +478,14 @@ describe 'Test de prototypes objects' do
       }
     }
 
-    espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
 
+    espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
+    # procs = espadachin.prototypes[0].procs
+    # elemento1 = procs[0]
+    # elemento2 = procs[1]
+    # expect(elemento2.name.to_sym == :recibe_danio).to eq(true)
+    # expect(espadachin.prototypes[0].procs.any?{|proc|proc.name == :recibe_danio}).to eq(true)
+    # expect(espadachin.prototypes[0].procs.detect{|proc|nombre = proc.name; nombre ==:recibe_danio}).to eq(2)
     expect(espadachin.energia).to eq(100)
     expect(espadachin.recibe_danio(10)).to eq(90)
     expect(espadachin.potencial_ofensivo).to eq(45)

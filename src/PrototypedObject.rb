@@ -20,7 +20,7 @@ module Commons
   end
 
   def es_un_attr_privado(atributo)
-    atributo == :@interesados || atributo == :@procs || atributo == :@prototipos
+    atributo == :@interesados || atributo == :@procs || atributo == :@prototypes
   end
 
   def metodo_anterior
@@ -91,7 +91,7 @@ module Prototyped
 
   def set_property nombre_atributo, valor
     instance_variable_set("@#{nombre_atributo}", valor) #define el atributo y le setea el valor
-    self.singleton_class.send(:attr_accessor, nombre_atributo) #crea los getters y setters del atributo para solo la instancia del objeto
+    self.singleton_class.send(:attr_reader, nombre_atributo) #crea los getters y setters del atributo para solo la instancia del objeto
     self.agregar_property_a_interesados(nombre_atributo) #Si tiene prototipos le agrega los atributos
   end
 
@@ -112,10 +112,16 @@ module Prototyped
   def method_missing(simbolo, *argumentos, &bloque)
     alguien = self.quien_entiende_metodo simbolo,argumentos.length
     if !alguien.nil?
-      block = alguien.procs.detect{|proc|proc.name==simbolo}.accion
+      un_proc = alguien.procs.detect{|proc|proc.name.to_sym ==simbolo}
+      block = un_proc.accion
       self.instance_exec(*argumentos, &block)
+    elsif argumentos.at(0).is_a?(Comparable)
+      self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
+    elsif argumentos.at(0).is_a?(Proc)
+        self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
+    else
+      super
     end
-
   end
 
   def quien_entiende_metodo simbolo , cantidad_argumentos
