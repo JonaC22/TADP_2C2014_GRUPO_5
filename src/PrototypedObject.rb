@@ -176,11 +176,10 @@ class PrototypedConstructor
 
   attr_accessor :prototype, :proc_inicializacion, :block_properties
 
-  def initialize(prototipo, *args)
+  def initialize(prototipo, &block)
     self.prototype = prototipo
-    bloque = args[0]
-    if (bloque)
-      self.proc_inicializacion = bloque
+    if (block)
+      @proc_inicializacion = block
     end
   end
 
@@ -214,7 +213,7 @@ class PrototypedConstructor
     nuevo = PrototypedObject.new
     nuevo.set_prototype self.prototype
     if (self.proc_inicializacion)
-      self.proc_inicializacion.call(nuevo, *args)
+      nuevo.instance_exec(*args, &proc_inicializacion)
     else
       unless (not (args[0].is_a? Hash) && args.length >0)
         hash = args[0]

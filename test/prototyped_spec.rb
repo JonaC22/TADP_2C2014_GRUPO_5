@@ -401,11 +401,11 @@ describe 'Test de prototypes objects' do
       self.recibe_danio = proc {|impacto| self.energia = self.energia - impacto}
     }
 
-    Guerrero = PrototypedConstructor.new(guerrero) do |una_energia, un_potencial_ofensivo, un_potencial_defensivo|
+    Guerrero = PrototypedConstructor.new(guerrero) { |una_energia, un_potencial_ofensivo, un_potencial_defensivo|
       self.energia = una_energia
       self.potencial_ofensivo = un_potencial_ofensivo
       self.potencial_defensivo = un_potencial_defensivo
-    end
+    }
 
     otro_guerrero = Guerrero.new(70,40,50)
     
