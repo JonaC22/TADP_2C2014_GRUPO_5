@@ -227,7 +227,7 @@ class PrototypedConstructor
         }
       else
         if block_properties
-          raise StandardError if(args.empty?)
+          raise RequiredArgumentMissingError if(args.empty?)
           bloque = self.block_properties
           nuevo.instance_exec(args, &bloque)
         end
