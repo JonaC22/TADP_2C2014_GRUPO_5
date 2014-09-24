@@ -174,12 +174,15 @@ class PrototypedConstructor
   include Commons
   include Observable
 
-  attr_accessor :prototype, :proc_inicializacion, :block_properties
+  attr_accessor :prototype, :proc_inicializacion, :block_inicializacion, :block_properties
 
-  def initialize(prototipo, &block)
+  def initialize(prototipo, *args, &block)
     self.prototype = prototipo
-    if (block)
-      @proc_inicializacion = block
+    if (block && !args[0]) #inicializacion con bloque
+      @block_inicializacion = block
+    end
+    if(!block && args[0]) #inicializacion simple con proc pasado por parametro
+      @proc_inicializacion = args[0]
     end
   end
 
@@ -212,8 +215,9 @@ class PrototypedConstructor
   def new *args
     nuevo = PrototypedObject.new
     nuevo.set_prototype self.prototype
-    if (self.proc_inicializacion)
-      nuevo.instance_exec(*args, &proc_inicializacion)
+    self.proc_inicializacion.call(nuevo,*args) if(self.proc_inicializacion) #ejecuta si es por el constructor simple
+    if (self.block_inicializacion) #ejecuta para constructor con bloque
+      nuevo.instance_exec(*args, &block_inicializacion)
     else
       unless (not (args[0].is_a? Hash) && args.length >0)
         hash = args[0]
@@ -222,7 +226,8 @@ class PrototypedConstructor
              nuevo.send("#{key}=", value)
         }
       else
-        if not(args.empty?)
+        if block_properties
+          raise StandardError if(args.empty?)
           bloque = self.block_properties
           nuevo.instance_exec(args, &bloque)
         end
