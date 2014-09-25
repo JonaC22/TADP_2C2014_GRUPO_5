@@ -79,10 +79,16 @@ module Observable
     }
   end
 
-
 end
 
 module Prototyped
+
+  attr_accessor :stack_called_methods
+
+  def initialize
+    @stack_called_methods = []
+  end
+
   def set_method nombre_metodo, accion
     self.agregar_a_lista_de_procs(nombre_metodo, accion)
     define_singleton_method(nombre_metodo, accion)
@@ -109,23 +115,52 @@ module Prototyped
 
   end
 
-  def method_missing(simbolo, *argumentos, &bloque)
+  def method_missing(simbolo, *argumentos, &bloque) #hay que separar el mecanismo de redefinicion y el de heredar metodos del prototipo
     alguien = self.quien_entiende_metodo simbolo,argumentos.length
     if !alguien.nil?
       un_proc = alguien.procs.detect{|proc|proc.name.to_sym ==simbolo}
       block = un_proc.accion
       self.instance_exec(*argumentos, &block)
-    elsif argumentos.at(0).is_a?(Comparable)
-      self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
-    elsif argumentos.at(0).is_a?(Proc)
-        self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
-    else
-      super
+    else #si no estoy redefiniendo nada, defino atributo o metodo dinamicamente
+      if argumentos.at(0).is_a?(Comparable)
+        set_attribute(argumentos, simbolo)
+      elsif argumentos.at(0).is_a?(Proc)
+          set_proc_as_method(argumentos, simbolo)
+          if(self.prototypes.detect {|proto| proto.respond_to? splitEquals(simbolo)}) #si el prototipo asignado
+            @stack_called_methods.push splitEquals(simbolo)
+          end
+      else
+        super
+      end
     end
   end
 
+  def redefinicion?(simbolo, *argumentos) #es redefinicion si estoy asignando, si lo que asigno es un proc y tengo alguien que lo entiende
+    hasEquals?(simbolo) && argumentos[0].is_a?(Proc) && (self.quien_entiende_metodo simbolo, argumentos.length)
+  end
+
+  def create_proc_from_value(value)
+    Proc.new {value}
+  end
+
+  def set_proc_as_method(argumentos, simbolo)
+    self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
+  end
+
+  def set_attribute(argumentos, simbolo)
+    self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
+  end
+
   def quien_entiende_metodo simbolo , cantidad_argumentos
-    self.prototypes.detect {|proto| proto.respond_to?(simbolo) && proto.method(simbolo).arity == cantidad_argumentos}
+    self.prototypes.detect {|proto| proto.respond_to?(simbolo) && self.aridad_correcta?(cantidad_argumentos, proto, simbolo)}
+  end
+
+  def aridad_correcta?(cantidad_argumentos, proto, simbolo)
+    (simbolo.to_s.reverse[0] == "=") ? true : proto.method(splitEquals(simbolo)).arity == cantidad_argumentos
+  end
+
+  def splitEquals(simbolo)
+    simbolo.to_s.split("=").at(0).to_sym
   end
 
   # if argumentos.at(0).is_a?(Comparable)
@@ -140,6 +175,10 @@ module Prototyped
 
   def respond_to_missing?(method_name, include_private = false)
     self.prototypes.any? {|prototype| prototype.respond_to? method_name }|| super
+  end
+
+  def hasEquals?(simbolo)
+    simbolo.to_s.reverse[0] == "="
   end
 
 end
@@ -164,8 +203,9 @@ class PrototypedObject
   end
 
   def call_next
-    elegidos = self.prototypes.select{ |proto|  proto.respond_to? caller_locations(1,1)[0].label.to_sym  }
-    elegidos.shift.send(caller_locations(1,1)[0].label.to_sym) #Hay que ver como obtener el nombre del metodo anterior a este
+    simbolo = @stack_called_methods.last
+    prototipo_asignado = self.prototypes.detect {|proto| proto.respond_to?(simbolo)}
+    prototipo_asignado.send(stack_called_methods.last)
   end
 
 end
