@@ -1,6 +1,5 @@
 require 'ostruct'
 
-
 module Commons
 
   def poner_igual una_prop
@@ -23,13 +22,51 @@ module Commons
     atributo == :@interesados || atributo == :@procs || atributo == :@prototypes
   end
 
-  def metodo_anterior
-    caller_locations(1,1)[0].label.to_sym
+  def obtener_bloque(prototipo, simbolo)
+    un_proc = detectar_quien_entiende_mensaje(prototipo, simbolo)
+    if un_proc.nil?
+      prototipo.prototypes.each {
+          |un_prototipo_de_prototipo|
+        un_proc = obtener_bloque(un_prototipo_de_prototipo, simbolo)
+        break unless un_proc.nil?
+      }
+    end
+    un_proc
+  end
+
+  def detectar_quien_entiende_mensaje(prototipo, simbolo)
+    prototipo.procs.detect { |proc| proc.name.to_sym == simbolo }
+  end
+
+  def hasEquals?(simbolo)
+    simbolo.to_s.reverse[0] == "="
+  end
+
+  def wrappear_bloque(nombre_metodo, *args, &block)
+    Proc.new {|*args|
+      @stack_called_methods.push splitEquals(nombre_metodo)
+      self.instance_exec(*args, &block) if block_given?
+    }
+  end
+
+  def aridad_correcta?(cantidad_argumentos, proto, simbolo)
+    aridad = proto.method(splitEquals(simbolo)).arity.abs
+    (simbolo.to_s.reverse[0] == "=" || cantidad_argumentos == 0) ? true : aridad == cantidad_argumentos
+  end
+
+  def splitEquals(simbolo)
+    simbolo.to_s.split("=").at(0).to_sym
+  end
+
+  def quien_entiende_metodo simbolo, cantidad_argumentos
+    self.prototypes.detect {
+        |proto|
+      proto.respond_to?(simbolo) &&
+          self.aridad_correcta?(cantidad_argumentos, proto, simbolo)
+    }
   end
 
 end
-
-
 
 module Observable
 
@@ -115,40 +152,10 @@ module Prototyped
         set_attribute(argumentos, simbolo)
       elsif argumentos.at(0).is_a?(Proc) && self.hasEquals?(simbolo)
           set_proc_as_method(argumentos, simbolo)
-          if(self.prototypes.detect {|proto| proto.respond_to? splitEquals(simbolo)}) #si el prototipo asignado entiende el mensaje, es porque lo estoy redefiniendo
-           # @stack_called_methods.push splitEquals(simbolo) #agrego a la lista de metodos que voy usar con call_next
-          end
       else
         super
       end
     end
-  end
-
-  def obtener_bloque(prototipo, simbolo)
-    un_proc = detectar_quien_entiende_mensaje(prototipo, simbolo)
-    if un_proc.nil?
-      prototipo.prototypes.each {
-          |un_prototipo_de_prototipo|
-        un_proc = obtener_bloque(un_prototipo_de_prototipo, simbolo)
-        break if !un_proc.nil?
-      }
-    end
-    un_proc
-  end
-
-  def detectar_quien_entiende_mensaje(prototipo, simbolo)
-    prototipo.procs.detect { |proc| proc.name.to_sym == simbolo }
-  end
-
-  def hasEquals?(simbolo)
-    simbolo.to_s.reverse[0] == "="
-  end
-
-  def wrappear_bloque(nombre_metodo, *args, &block)
-    Proc.new {|*args|
-      @stack_called_methods.push splitEquals(nombre_metodo)
-      self.instance_exec(*args, &block) if block_given?
-    }
   end
 
   def set_proc_as_method(argumentos, simbolo)
@@ -157,23 +164,6 @@ module Prototyped
 
   def set_attribute(argumentos, simbolo)
     self.set_property(splitEquals(simbolo), *argumentos)
-  end
-
-  def quien_entiende_metodo simbolo, cantidad_argumentos
-    self.prototypes.detect {
-        |proto|
-        proto.respond_to?(simbolo) &&
-        self.aridad_correcta?(cantidad_argumentos, proto, simbolo)
-    }
-  end
-
-  def aridad_correcta?(cantidad_argumentos, proto, simbolo)
-    aridad = proto.method(splitEquals(simbolo)).arity.abs
-    (simbolo.to_s.reverse[0] == "=" || cantidad_argumentos == 0) ? true : aridad == cantidad_argumentos
-  end
-
-  def splitEquals(simbolo)
-    simbolo.to_s.split("=").at(0).to_sym
   end
 
   def respond_to_missing?(method_name, include_private = false)
@@ -205,7 +195,12 @@ class PrototypedObject
   def call_next
     simbolo = @stack_called_methods.last
     prototipo_asignado = self.prototypes.detect {|proto| proto.respond_to?(simbolo)}
-    prototipo_asignado.send(stack_called_methods.last)
+    bloque = obtener_bloque(prototipo_asignado, simbolo)
+    unless bloque.nil?
+      instance_exec &bloque.accion
+    else
+      prototipo_asignado.send(stack_called_methods.last)
+    end
   end
 
 end
@@ -256,21 +251,21 @@ class PrototypedConstructor
     nuevo = PrototypedObject.new
     nuevo.set_prototype self.prototype
     self.proc_inicializacion.call(nuevo,*args) if(self.proc_inicializacion) #ejecuta si es por el constructor simple
-    if (self.block_inicializacion) #ejecuta para constructor con bloque
+    if self.block_inicializacion #ejecuta para constructor con bloque
       nuevo.instance_exec(*args, &block_inicializacion)
     else
-      unless (not (args[0].is_a? Hash) && args.length >0)
-        hash = args[0]
-        hash.each_pair {
-         |key, value|
-             nuevo.send("#{key}=", value)
-        }
-      else
+      if !(args[0].is_a? Hash) && args.length >0
         if block_properties
-          raise RequiredArgumentMissingError if(args.empty?)
+          raise RequiredArgumentMissingError if (args.empty?)
           bloque = self.block_properties
           nuevo.instance_exec(args, &bloque)
         end
+      else
+        hash = args[0]
+        hash.each_pair {
+            |key, value|
+          nuevo.send("#{key}=", value)
+        }
       end
     end
     nuevo
@@ -306,7 +301,6 @@ class PrototypedConstructorCopy < PrototypedConstructor
   end
 end
 
-
 class PrototypedConstructorExtended < PrototypedConstructor
   attr_accessor :extension
 
@@ -321,8 +315,6 @@ class PrototypedConstructorExtended < PrototypedConstructor
     atributos_extension = args.shift
     valores = atributos_extension.values
     atributos_extension.keys.each { |un_atributo| extendido.instance_variable_set("@#{un_atributo}", valores.shift) }
-    #args.unshift(extendido)
-    #self.extension.call(args)
     extendido.instance_exec(args, &self.extension)
     extendido
   end
