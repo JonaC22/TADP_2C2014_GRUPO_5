@@ -432,10 +432,6 @@ describe 'Test de prototypes objects' do
     atila = Guerrero.new(100,50,30)
     expect(atila.potencial_ofensivo).to eq(50)
 
-    proto_guerrero = Guerrero.prototype
-    proto_guerrero.potencial_ofensivo = proc {1000}
-
-    expect(atila.potencial_ofensivo).to eq(1000)
   end
 
   it 'azucar sintactico constructor create segunda forma' do
@@ -450,10 +446,6 @@ describe 'Test de prototypes objects' do
     atila = Guerrero.new(100,50,30)
     expect(atila.potencial_ofensivo).to eq(50)
 
-    proto_guerrero = Guerrero.prototype
-    proto_guerrero.potencial_ofensivo = proc {1000}
-
-    expect(atila.potencial_ofensivo).to eq(1000)
   end
 
   it 'Azucar sintactico constructor extended' do
@@ -518,13 +510,18 @@ describe 'Test de prototypes objects' do
       self.potencial_ofensivo = proc {
         call_next + self.potencial_espada * self.habilidad
       }
+      self.potencial_defensivo = proc {
+        call_next + call_next
+      }
+      self.energia = proc {
+        call_next * 2
+      }
     }
     espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
 
-    expect(espadachin.energia).to eq(100)
     expect(espadachin.potencial_ofensivo).to eq(45)
-    expect(espadachin.potencial_defensivo).to eq(10)
-
+    expect(espadachin.energia).to eq(200)
+    expect(espadachin.potencial_defensivo).to eq(20)
 
   end
 
@@ -533,14 +530,14 @@ describe 'Test de prototypes objects' do
       self.super_ataque_a = proc{|otro_guerrero|
         otro_guerrero.energia = otro_guerrero.energia - 10
       }
-    }.with_properties([:potencial_ofensivo])
+    }.with_properties([:energia])
 
-    proto_atacante = Atacante.new(800)
+    proto_atacante = Atacante.new
 
     Defensor = PrototypedConstructor.create {
       self.curarme = proc{
         self.energia = self.energia + 50}
-    }
+    }.with_properties([:energia])
 
     proto_defensor = Defensor.new
 
@@ -555,6 +552,18 @@ describe 'Test de prototypes objects' do
     Guerrero.prototype.set_prototypes([proto_atacante, proto_defensor])
     expect(Guerrero.prototype.prototypes.length).to eq(2)
 
+    atila = Guerrero.new
+    atila.energia = 250
+    atila.potencial_defensivo = 50
+    atila.potencial_ofensivo = 80
+    expect(atila.energia).to eq(250)
+    expect(atila.potencial_ofensivo).to eq(80)
+    expect(atila.respond_to? :curarme).to eq(true)
+    otro_guerrero = atila.clone
+    atila.super_ataque_a otro_guerrero
+
+
+    expect(otro_guerrero.energia).to eq(220)
   end
 
 end

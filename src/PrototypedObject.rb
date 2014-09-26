@@ -27,15 +27,6 @@ module Commons
     caller_locations(1,1)[0].label.to_sym
   end
 
-  # set_trace_func proc { |event, file, line, id, binding, classname|
-  #   # only interested in events of type 'call' (Ruby method calls)
-  #   # see the docs for set_trace_func for other supported event types
-  #   if event == 'call'
-  #     if
-  #
-  #     end
-  #   end
-  # }
 end
 
 
@@ -90,9 +81,9 @@ module Prototyped
   end
 
   def set_method nombre_metodo, accion
-    self.agregar_a_lista_de_procs(nombre_metodo, accion)
-    define_singleton_method(nombre_metodo, accion)
-    self.agregar_metodo_a_interesados(nombre_metodo, accion)
+    self.agregar_a_lista_de_procs(nombre_metodo, wrappear_bloque(nombre_metodo, &accion))
+    define_singleton_method(nombre_metodo, wrappear_bloque(nombre_metodo, &accion))
+    self.agregar_metodo_a_interesados(nombre_metodo, wrappear_bloque(nombre_metodo, &accion))
   end
 
   def set_property nombre_atributo, valor
@@ -103,31 +94,30 @@ module Prototyped
 
 
   def set_prototype un_prototipo
-    # self.setear_metodos_del_prototipo(un_prototipo)
     self.setear_propertys_del_prototipo(un_prototipo)
     un_prototipo.interesados << self
     self.prototypes << un_prototipo
   end
 
   def set_prototypes protos
-    protos.each { |proto|self.set_prototype(proto)}
-    self.prototypes + proto
+    protos.each { |proto| self.set_prototype(proto)}
 
   end
 
-  def method_missing(simbolo, *argumentos, &bloque) #hay que separar el mecanismo de redefinicion y el de heredar metodos del prototipo
+  def method_missing(simbolo, *argumentos, &bloque)
     alguien = self.quien_entiende_metodo simbolo,argumentos.length
+    set_proc_as_method(argumentos, simbolo) if(!alguien.nil? && argumentos[0].is_a?(Proc) && self.hasEquals?(simbolo))
     if !alguien.nil?
       un_proc = alguien.procs.detect{|proc|proc.name.to_sym ==simbolo}
       block = un_proc.accion
       self.instance_exec(*argumentos, &block)
     else #si no estoy redefiniendo nada, defino atributo o metodo dinamicamente
-      if argumentos.at(0).is_a?(Comparable)
+      if argumentos.at(0).is_a?(Comparable) && self.hasEquals?(simbolo)
         set_attribute(argumentos, simbolo)
-      elsif argumentos.at(0).is_a?(Proc)
+      elsif argumentos.at(0).is_a?(Proc) && self.hasEquals?(simbolo)
           set_proc_as_method(argumentos, simbolo)
-          if(self.prototypes.detect {|proto| proto.respond_to? splitEquals(simbolo)}) #si el prototipo asignado
-            @stack_called_methods.push splitEquals(simbolo)
+          if(self.prototypes.detect {|proto| proto.respond_to? splitEquals(simbolo)}) #si el prototipo asignado entiende el mensaje, es porque lo estoy redefiniendo
+           # @stack_called_methods.push splitEquals(simbolo) #agrego a la lista de metodos que voy usar con call_next
           end
       else
         super
@@ -135,50 +125,44 @@ module Prototyped
     end
   end
 
-  def redefinicion?(simbolo, *argumentos) #es redefinicion si estoy asignando, si lo que asigno es un proc y tengo alguien que lo entiende
-    hasEquals?(simbolo) && argumentos[0].is_a?(Proc) && (self.quien_entiende_metodo simbolo, argumentos.length)
+  def hasEquals?(simbolo)
+    simbolo.to_s.reverse[0] == "="
   end
 
-  def create_proc_from_value(value)
-    Proc.new {value}
+  def wrappear_bloque(nombre_metodo, *args, &block)
+    Proc.new {|*args|
+      @stack_called_methods.push splitEquals(nombre_metodo)
+      self.instance_exec(*args, &block) if block_given?
+    }
   end
 
   def set_proc_as_method(argumentos, simbolo)
-    self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
+    self.set_method(splitEquals(simbolo), *argumentos)
   end
 
   def set_attribute(argumentos, simbolo)
-    self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
+    self.set_property(splitEquals(simbolo), *argumentos)
   end
 
-  def quien_entiende_metodo simbolo , cantidad_argumentos
-    self.prototypes.detect {|proto| proto.respond_to?(simbolo) && self.aridad_correcta?(cantidad_argumentos, proto, simbolo)}
+  def quien_entiende_metodo simbolo, cantidad_argumentos
+    self.prototypes.detect {
+        |proto|
+        proto.respond_to?(simbolo) &&
+        self.aridad_correcta?(cantidad_argumentos, proto, simbolo)
+    }
   end
 
   def aridad_correcta?(cantidad_argumentos, proto, simbolo)
-    (simbolo.to_s.reverse[0] == "=") ? true : proto.method(splitEquals(simbolo)).arity == cantidad_argumentos
+    aridad = proto.method(splitEquals(simbolo)).arity.abs
+    (simbolo.to_s.reverse[0] == "=" || cantidad_argumentos == 0) ? true : aridad == cantidad_argumentos
   end
 
   def splitEquals(simbolo)
     simbolo.to_s.split("=").at(0).to_sym
   end
 
-  # if argumentos.at(0).is_a?(Comparable)
-  #   self.set_property(simbolo.to_s.split("=").at(0), *argumentos)
-  # else
-  #   if argumentos.at(0).is_a?(Proc)
-  #     self.set_method(simbolo.to_s.split("=").at(0), *argumentos)
-  #   else
-  #     super
-  #   end
-  # end
-
   def respond_to_missing?(method_name, include_private = false)
     self.prototypes.any? {|prototype| prototype.respond_to? method_name }|| super
-  end
-
-  def hasEquals?(simbolo)
-    simbolo.to_s.reverse[0] == "="
   end
 
 end
