@@ -290,9 +290,6 @@ describe 'Test de prototypes objects' do
     expect(otro_guerrero.potencial_defensivo).to eq(10)
     expect(guerrero.respond_to?(:recibe_danio)).to eq(true)
     expect(otro_guerrero.prototypes.length).to eq(1)
-    # expect(otro_guerrero.prototypes.include? guerrero).to eq(true)
-    # expect(otro_guerrero.prototypes.any? {|prototype| prototype.respond_to? :recibe_danio }).to eq(true)
-    # expect(otro_guerrero.respond_to?(:recibe_danio)).to eq(true)
   end
 
   # it 'Constructor extended funciona bien' do
@@ -472,12 +469,6 @@ describe 'Test de prototypes objects' do
 
 
     espadachin = Espadachin.new({energia: 100, potencial_ofensivo: 30, potencial_defensivo: 10}, 0.5, 30)
-    # procs = espadachin.prototypes[0].procs
-    # elemento1 = procs[0]
-    # elemento2 = procs[1]
-    # expect(elemento2.name.to_sym == :recibe_danio).to eq(true)
-    # expect(espadachin.prototypes[0].procs.any?{|proc|proc.name == :recibe_danio}).to eq(true)
-    # expect(espadachin.prototypes[0].procs.detect{|proc|nombre = proc.name; nombre ==:recibe_danio}).to eq(2)
     expect(espadachin.energia).to eq(100)
     expect(espadachin.recibe_danio(10)).to eq(90)
     expect(espadachin.potencial_ofensivo).to eq(45)
@@ -528,13 +519,14 @@ describe 'Test de prototypes objects' do
   it 'prototipos multiples' do
     Atacante = PrototypedConstructor.create {
       self.super_ataque_a = proc{|otro_guerrero|
-        otro_guerrero.energia = otro_guerrero.energia - 10
+        otro_guerrero.energia = otro_guerrero.energia/2
       }
     }.with_properties([:energia])
 
     proto_atacante = Atacante.new
 
     Defensor = PrototypedConstructor.create {
+      self.super_ataque_a = proc{ |otro_guerrero| otro_guerrero.energia = 1}
       self.curarme = proc{
         self.energia = self.energia + 50}
     }.with_properties([:energia])
@@ -559,11 +551,20 @@ describe 'Test de prototypes objects' do
     expect(atila.energia).to eq(250)
     expect(atila.potencial_ofensivo).to eq(80)
     expect(atila.respond_to? :curarme).to eq(true)
-    otro_guerrero = atila.clone
+    Otro_guerrero = PrototypedConstructorCopy.new(atila)
+    otro_guerrero = Otro_guerrero.new
     atila.super_ataque_a otro_guerrero
 
+    expect(otro_guerrero.energia).to eq(125)
 
-    expect(otro_guerrero.energia).to eq(220)
+    #dependiendo del orden en que agregue los prototipos a la lista,
+    #tiene mas prioridad el que esté primero en los casos de que haya metodos con el mismo nombre
+    Guerrero.prototype.prototypes.clear
+    Guerrero.prototype.set_prototypes([proto_defensor, proto_atacante])
+
+    otro_guerrero.energia = 250
+    atila.super_ataque_a otro_guerrero
+    expect(otro_guerrero.energia).to eq(1)
   end
 
 end

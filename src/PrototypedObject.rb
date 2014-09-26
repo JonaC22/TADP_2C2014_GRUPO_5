@@ -108,8 +108,7 @@ module Prototyped
     alguien = self.quien_entiende_metodo simbolo,argumentos.length
     set_proc_as_method(argumentos, simbolo) if(!alguien.nil? && argumentos[0].is_a?(Proc) && self.hasEquals?(simbolo))
     if !alguien.nil?
-      un_proc = alguien.procs.detect{|proc|proc.name.to_sym ==simbolo}
-      block = un_proc.accion
+      block = obtener_bloque(alguien, simbolo).accion
       self.instance_exec(*argumentos, &block)
     else #si no estoy redefiniendo nada, defino atributo o metodo dinamicamente
       if argumentos.at(0).is_a?(Comparable) && self.hasEquals?(simbolo)
@@ -123,6 +122,22 @@ module Prototyped
         super
       end
     end
+  end
+
+  def obtener_bloque(prototipo, simbolo)
+    un_proc = detectar_quien_entiende_mensaje(prototipo, simbolo)
+    if un_proc.nil?
+      prototipo.prototypes.each {
+          |un_prototipo_de_prototipo|
+        un_proc = obtener_bloque(un_prototipo_de_prototipo, simbolo)
+        break if !un_proc.nil?
+      }
+    end
+    un_proc
+  end
+
+  def detectar_quien_entiende_mensaje(prototipo, simbolo)
+    prototipo.procs.detect { |proc| proc.name.to_sym == simbolo }
   end
 
   def hasEquals?(simbolo)
@@ -162,7 +177,8 @@ module Prototyped
   end
 
   def respond_to_missing?(method_name, include_private = false)
-    self.prototypes.any? {|prototype| prototype.respond_to? method_name }|| super
+    objeto_que_entiende_mensaje = self.prototypes.detect {|prototype| prototype.respond_to? method_name }
+    (!objeto_que_entiende_mensaje.nil?) || super
   end
 
 end
