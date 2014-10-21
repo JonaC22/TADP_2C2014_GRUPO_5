@@ -4,7 +4,7 @@ import org.junit.Test
 import org.junit.Assert
 
 class TestsArgentinaExpress {
-	
+  
 	@Test
 	def testSucursalTieneCapacidad(){
 		var sucursal1 = new Sucursal(10)
@@ -33,5 +33,30 @@ class TestsArgentinaExpress {
 		  Assert.assertTrue(true)
 		}
 		}
+	}
+	
+	@Test
+	def mockSistemaExternoDevuelveDistancias {
+	  
+	  object SistemaExterno extends CalculadorDistancia {
+	     override def distanciaTerrestreEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
+	       250.5
+	     }
+	     
+	     override def distanciaAereaEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
+	       200.5
+	     }
+	     
+	     override def cantidadPeajesEntre(sucursal1: Sucursal, sucursal2: Sucursal): Int = {
+	       4
+	     }
+	  }
+	  
+	  var sucursal1 = new Sucursal(10)
+	  var sucursal2 = new Sucursal(20)	 	  
+	  
+	  Assert.assertEquals(250.5, SistemaExterno.distanciaTerrestreEntre(sucursal1, sucursal2), 0)
+	  Assert.assertEquals(200.5, SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2), 0)
+	  Assert.assertEquals(4, SistemaExterno.cantidadPeajesEntre(sucursal1, sucursal2))
 	}
 }
