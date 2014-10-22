@@ -6,33 +6,78 @@ import org.junit.Assert
 class TestsArgentinaExpress {
   
 	@Test
-	def testSucursalTieneCapacidad(){
+	def sucursalTieneCapacidad(){
 		var sucursal1 = new Sucursal(10)
 		var sucursal2 = new Sucursal(20)
 		var sucursal3 = new Sucursal(10)
-		var esperandoSalida = Set(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,2, Normal))
-		var esperandoEntrada = Set(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
+		var esperandoSalida = Seq(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,3, Normal))
+		var esperandoEntrada = Seq(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
 		sucursal3.notificarEnvios(esperandoSalida)
 		sucursal3.notificarRecepcion(esperandoEntrada)
-		Assert.assertEquals(sucursal3.volumenTotal, 1)
+		Assert.assertEquals(sucursal3.capacidad, 0)
 	}
 
 	@Test
-	def testSucursalNoTieneCapacidad{
+	def sucursalNoTieneCapacidad{
 		var sucursal1 = new Sucursal(10)
 		var sucursal2 = new Sucursal(20)
 		var sucursal3 = new Sucursal(10)
+		
+		var esperandoSalida = Seq(new Paquete(sucursal1, sucursal2,6, Normal), new Paquete(sucursal1, sucursal2,4, Normal))
+		var esperandoEntrada = Seq(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
+		sucursal3.notificarEnvios(esperandoSalida)
+		Assert.assertEquals(0, sucursal3.capacidad) // 10 - 6 - 4 = 0
+		
 		try {
-			var esperandoSalida = Set(new Paquete(sucursal1, sucursal2,6, Normal), new Paquete(sucursal1, sucursal2,4, Normal))
-			var esperandoEntrada = Set(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
-			sucursal3.notificarEnvios(esperandoSalida)
 			sucursal3.notificarRecepcion(esperandoEntrada)
-			sucursal3.volumenTotal
 		} catch {
 		case SucursalSinCapacidad() => {
-		  Assert.assertTrue(true)
+		  Assert.assertEquals(0, sucursal3.capacidad)
 		}
 		}
+		
+		Assert.assertEquals(0, sucursal3.capacidad)
+		Assert.assertEquals(0, sucursal3.paquetesEnEntrar.size)
+	}
+	
+	@Test
+	def transporteTieneCapacidad(){
+		var sucursal1 = new Sucursal(10)
+		var sucursal2 = new Sucursal(20)
+		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
+		
+		var camion = new Camion()
+		camion.asignarPaquetes(paquetesYaAsignados)
+		Assert.assertEquals(2, camion.pedidos.size)
+		Assert.assertEquals(15, camion.capacidad) //45 - 10 - 20 = 15
+		
+		var paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,10,Normal))	
+		camion.asignarPaquetes(paquetesNuevos)
+		Assert.assertEquals(4, camion.pedidos.size)
+		Assert.assertEquals(0, camion.capacidad) //45 - 10 - 20 - 5 - 10 = 0
+	}
+
+	@Test
+	def transporteNoTieneCapacidad{
+		var sucursal1 = new Sucursal(10)
+		var sucursal2 = new Sucursal(20)
+		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
+		
+		var camion = new Camion()
+		camion.asignarPaquetes(paquetesYaAsignados)
+		Assert.assertEquals(2, camion.pedidos.size)
+		Assert.assertEquals(15, camion.capacidad) //45 - 10 - 20 = 15
+		
+		var paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,15,Normal))	
+		
+		try {
+			camion.asignarPaquetes(paquetesNuevos) //excedo la capacidad
+		} catch {
+		case TransporteSinCapacidad() => {
+		  Assert.assertEquals(15,camion.capacidad)
+		}
+		}
+		Assert.assertEquals(2, camion.pedidos.size)
 	}
 	
 	@Test

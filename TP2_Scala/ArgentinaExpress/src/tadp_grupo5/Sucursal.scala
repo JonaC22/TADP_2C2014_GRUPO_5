@@ -1,18 +1,26 @@
 package tadp_grupo5
 
 class Sucursal (volumenDeposito : Int) {
-  var paquetesEnSalir : Set[Paquete] = Set()
-  var paquetesEnEntrar : Set[Paquete] = Set()
+  var paquetesEnSalir : Seq[Paquete] = Seq()
+  var paquetesEnEntrar : Seq[Paquete] = Seq()
   
-  def volumenTotal : Int = {
-    val volumen = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum
-    if(volumen < 1) throw new SucursalSinCapacidad()
-    volumen
+  def capacidad : Int = {
+    volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   }
   
-  def notificarRecepcion(paquetes : Set[Paquete]) = paquetesEnEntrar = paquetesEnEntrar ++ paquetes
+  def notificarRecepcion(paquetes : Seq[Paquete]) {
+    validarCapacidad(paquetes)
+    paquetesEnEntrar = paquetesEnEntrar ++ paquetes
+  }
   
-  def notificarEnvios(paquetes : Set[Paquete]) = paquetesEnSalir = paquetesEnSalir ++ paquetes
+  def notificarEnvios(paquetes : Seq[Paquete]) {
+    validarCapacidad(paquetes)
+    paquetesEnSalir = paquetesEnSalir ++ paquetes
+  } 
+  
+  def validarCapacidad(paquetes : Seq[Paquete]) : Unit = {
+    if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
+  }
 }
 
 case class SucursalSinCapacidad() extends Exception
