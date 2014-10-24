@@ -1,6 +1,7 @@
 package tadp_grupo5
 
 class Transporte(volumen : Int, costo : Int, velocidad: Int){
+
   var pedidos : Seq[Paquete] = Seq()
   
   def capacidad : Int = {
@@ -8,19 +9,25 @@ class Transporte(volumen : Int, costo : Int, velocidad: Int){
   }
   
   def asignarPaquetes(nuevosPaquetes : Seq[Paquete]) : Unit = {
-    if(capacidad < nuevosPaquetes.map(_.volumen).sum) throw new TransporteSinCapacidad()
-    else {
-      validarDestinoPaquetes(nuevosPaquetes)
-      pedidos = pedidos ++ nuevosPaquetes
-    }
+    validarPaquetes(nuevosPaquetes)
+    pedidos = pedidos ++ nuevosPaquetes
+  }
+  
+  def validarPaquetes(nuevosPaquetes : Seq[Paquete]) : Unit = {
+    validarCapacidad(nuevosPaquetes)
+    validarDestinoPaquetes(nuevosPaquetes)
+  }
+  
+  def validarCapacidad(nuevosPaquetes : Seq[Paquete]) {
+	if(capacidad < nuevosPaquetes.map(_.volumen).sum) throw new TransporteSinCapacidad()
   }
   
   def validarDestinoPaquetes(paquetes : Seq[Paquete]) : Unit = {
     var destino = paquetes.head.sucursalDestino
+    
     if(pedidos.size != 0) destino = pedidos.head.sucursalDestino
-    else {
-      if(!paquetes.forall(x => x.sucursalDestino == destino)) throw new PaquetesDestinoErroneo()
-    }
+    
+    if(paquetes.exists(x => x.sucursalDestino != destino)) throw new PaquetesDestinoErroneo()
   }
   
 }
