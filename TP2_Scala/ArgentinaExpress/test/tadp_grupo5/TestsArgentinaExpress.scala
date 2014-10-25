@@ -7,16 +7,20 @@ class TestsArgentinaExpress {
   
   //fixture
 	object SistemaExterno extends CalculadorDistancia {
+		 var distanciaTerrestre : Double = 0.0
+		 var distanciaAerea :Double = 0.0
+		 var cantidadPeajes : Int = 0
+		
 	     override def distanciaTerrestreEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
-	       250.5
+	       distanciaTerrestre
 	     }
 	     
 	     override def distanciaAereaEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
-	       200.5
+	       distanciaAerea
 	     }
 	     
 	     override def cantidadPeajesEntre(sucursal1: Sucursal, sucursal2: Sucursal): Int = {
-	       4
+	       cantidadPeajes
 	     }
 	  }
   
@@ -99,7 +103,11 @@ class TestsArgentinaExpress {
 	def mockSistemaExternoDevuelveDistancias {
 	  
 	  var sucursal1 = new Sucursal(10)
-	  var sucursal2 = new Sucursal(20)	 	  
+	  var sucursal2 = new Sucursal(20)	 	
+	  
+	  SistemaExterno.distanciaTerrestre  = 250.5
+	  SistemaExterno.distanciaAerea = 200.5
+	  SistemaExterno.cantidadPeajes = 4
 	  
 	  Assert.assertEquals(250.5, SistemaExterno.distanciaTerrestreEntre(sucursal1, sucursal2), 0)
 	  Assert.assertEquals(200.5, SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2), 0)
