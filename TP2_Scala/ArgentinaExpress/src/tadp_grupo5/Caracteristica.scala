@@ -1,8 +1,12 @@
 package tadp_grupo5
 
-abstract class Caracteristica
+abstract class Caracteristica(costo : Int,precio : Int) {
+  def costoBase : Int = costo
+}
 
-case object Normal extends Caracteristica
-case object Urgente extends Caracteristica
-case object NecesitaRefrigeracion extends Caracteristica
-case object Fragil extends Caracteristica
+case object Normal extends Caracteristica(10,80)
+case object Urgente extends Caracteristica(20,110)
+case object NecesitaRefrigeracion extends Caracteristica(70,210){
+  override def costoBase : Int = super.costoBase + 5 //costoBase + $5 por necesitar refrigeracion
+}
+case object Fragil extends Caracteristica(18,120)
