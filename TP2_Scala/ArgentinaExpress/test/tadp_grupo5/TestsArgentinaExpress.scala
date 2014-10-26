@@ -1,10 +1,45 @@
 package tadp_grupo5
 
-import org.junit.Test
-import org.junit.Assert
+import org.scalatest._
 
+
+class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
+
+	var sucursal1 = new Sucursal(10)
+	var sucursal2 = new Sucursal(20)
+    var sucursal3 = new Sucursal(10)
+	
+	after{
+	  sucursal3.paquetesEnEntrar = Nil
+	  sucursal3.paquetesEnSalir = Nil
+	}
+    
+	"Una sucursal" should "tener capacidad" in {
+		var esperandoSalida = Seq(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,3, Normal))
+		sucursal3.notificarEnvios(esperandoSalida)
+		assert(sucursal3.capacidad == 6) //10 - 1 - 3 = 6
+	}				
+
+	it should " poder agregarse mas paquetes" in {
+	    var esperandoSalida = Seq(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,3, Normal))
+		sucursal3.notificarEnvios(esperandoSalida)
+		assert(sucursal3.capacidad == 6)
+		var esperandoEntrada = Seq(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
+		sucursal3.notificarRecepcion(esperandoEntrada)
+		assert(sucursal3.capacidad == 0)
+	}
+	
+	it should "no poder agregarse mas paquetes" in {
+	   intercept[SucursalSinCapacidad]{
+	     var esperandoEntrada = Seq(new Paquete(sucursal3, sucursal2,10, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
+		 sucursal3.notificarRecepcion(esperandoEntrada)
+	   }
+	}
+}
+
+/*
 class TestsArgentinaExpress {
-  
+
   //fixture
 	object SistemaExterno extends CalculadorDistancia {
 		 var distanciaTerrestre : Double = 0.0
@@ -154,3 +189,4 @@ class TestsArgentinaExpress {
 		Assert.assertEquals(0, camion.capacidad) //45 - 10 - 20 - 5 - 10 = 15
 	}
 }
+*/
