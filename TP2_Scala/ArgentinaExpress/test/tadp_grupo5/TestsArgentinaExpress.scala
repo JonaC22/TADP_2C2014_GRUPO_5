@@ -64,93 +64,73 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  assert(SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2) == 200.5)
 	  assert(SistemaExterno.cantidadPeajesEntre(sucursal1, sucursal2) == 4)
 	}
-}
-
-/*
-class TestsArgentinaExpress {
-
-  //fixture
 	
-	@Test
-	def transporteTieneCapacidad(){
+	"Un transporte" should "tener capacidad" in {
 		var sucursal1 = new Sucursal(10)
 		var sucursal2 = new Sucursal(20)
 		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-		
-		var camion = new Camion()
+
+		var camion = new Camion(SistemaExterno)
 		camion.asignarPaquetes(paquetesYaAsignados)
-		Assert.assertEquals(2, camion.pedidos.size)
-		Assert.assertEquals(15, camion.capacidad) //45 - 10 - 20 = 15
-		
+		assert(camion.pedidos.size == 2)
+		assert(camion.capacidad == 15) //45 - 10 - 20 = 15
+
 		var paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal2,10,Normal))	
 		camion.asignarPaquetes(paquetesNuevos)
-		Assert.assertEquals(4, camion.pedidos.size)
-		Assert.assertEquals(0, camion.capacidad) //45 - 10 - 20 - 5 - 10 = 0
+		assert(camion.pedidos.size == 4)
+		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 0
 	}
-
-	@Test
-	def transporteNoTieneCapacidad{
+	
+	it should "no tener capacidad" in {
 		var sucursal1 = new Sucursal(10)
 		var sucursal2 = new Sucursal(20)
 		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-		
-		var camion = new Camion()
+
+		var camion = new Camion(SistemaExterno)
 		camion.asignarPaquetes(paquetesYaAsignados)
-		Assert.assertEquals(2, camion.pedidos.size)
-		Assert.assertEquals(15, camion.capacidad) //45 - 10 - 20 = 15
-		
+		assert(camion.pedidos.size == 2)
+		assert( camion.capacidad == 15) //45 - 10 - 20 = 15
+
 		var paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,15,Normal))	
-		
-		try {
-			camion.asignarPaquetes(paquetesNuevos) //excedo la capacidad
-		} catch {
-		case TransporteSinCapacidad() => {
-		  Assert.assertEquals(15,camion.capacidad)
+
+		intercept[TransporteSinCapacidad]{
+		  camion.asignarPaquetes(paquetesNuevos) //excedo la capacidad
 		}
-		}
-		Assert.assertEquals(2, camion.pedidos.size)
+		assert(camion.capacidad == 15)
+		assert(camion.pedidos.size == 2)
 	}
 	
-	
-	
-	@Test
-	def transporteNoLlevaPaquetesDeDestinosDiferentes{
-		var sucursal1 = new Sucursal(10)
+	it should "no llevar paquetes de destinos diferentes" in {
+	  var sucursal1 = new Sucursal(10)
 		var sucursal2 = new Sucursal(20)
 		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal1,20, Normal))
 		
-		var camion = new Camion()
-		try {
+		var camion = new Camion(SistemaExterno)
+	  
+		intercept[PaquetesDestinoErroneo] {
 			camion.asignarPaquetes(paquetesYaAsignados) //asigno paquetes iniciales con destino distinto
-		} catch {
-		  case PaquetesDestinoErroneo() => {
-		    Assert.assertEquals(0, camion.pedidos.size)
-		  }
-		}
-		
+	    }
+	  
+		assert(camion.pedidos.size == 0)
 		paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 		
 		camion.asignarPaquetes(paquetesYaAsignados)
-		Assert.assertEquals(2, camion.pedidos.size)
-		Assert.assertEquals(15, camion.capacidad) //45 - 10 - 20 = 15
+		assert(camion.pedidos.size == 2)
+		assert(camion.capacidad == 15) //45 - 10 - 20 = 15
 		
 		var paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,10,Normal))	
 		
-		try {
+		intercept[PaquetesDestinoErroneo] {
 			camion.asignarPaquetes(paquetesNuevos) //asigno mas paquetes pero uno con destino distinto
-		} catch {
-		case PaquetesDestinoErroneo() => {
-		  Assert.assertEquals(15,camion.capacidad)
-		}
 		}
 		
-		Assert.assertEquals(2, camion.pedidos.size)
+		assert(camion.capacidad == 15)
+		assert(camion.pedidos.size == 2)
 		
 		paquetesNuevos = Seq(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal2,10,Normal))	
 		
 		camion.asignarPaquetes(paquetesNuevos)
-		Assert.assertEquals(4, camion.pedidos.size)
-		Assert.assertEquals(0, camion.capacidad) //45 - 10 - 20 - 5 - 10 = 15
+		assert(camion.pedidos.size == 4)
+		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 15
 	}
 }
-*/
