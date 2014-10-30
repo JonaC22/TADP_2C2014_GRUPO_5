@@ -1,6 +1,6 @@
 package tadp_grupo5
 
-class Sucursal (volumenDeposito : Int) {
+class Sucursal (volumenDeposito : Int, val pais : String) {
   var paquetesEnSalir : Seq[Paquete] = Seq()
   var paquetesEnEntrar : Seq[Paquete] = Seq()
   

@@ -39,7 +39,7 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   def distanciaEntreSucursales : Double 
   
   def costoEnvio : Double = {
-    costoBasePaquetes + costoDelViaje
+    costoBasePaquetes + costoDelViaje + costoPeajes + costosAdicionales
   }
   
   def gananciaEnvio : Double = {
@@ -54,16 +54,14 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
     costo * distanciaEntreSucursales
   }
   
-  def costoPeajes : Double = {
-    sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
-  }
+  def costoPeajes : Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
   
   def costoBasePaquetes : Double = {
     pedidos.map(x => x.costo).sum
   }
   
-  def costosAdicionales : Int = {
-    5// aca se deben sumar peajes, costo por refrigeracion, impuesto(aviones), etc
+  def costosAdicionales : Double = {
+    0
   }
 }
 
@@ -71,21 +69,32 @@ case class Camion(override var sistemaExterno : CalculadorDistancia) extends Tra
   override def distanciaEntreSucursales : Double = {
     sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   }
+  override def costoPeajes : Double = super.costoPeajes * 12
 }
 case class Furgoneta(override var sistemaExterno : CalculadorDistancia) extends Transporte(9,40,80){
   
   override def distanciaEntreSucursales : Double = {
     sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   }
+  
+  override def costoPeajes : Double = super.costoPeajes * 6
 }
 case class Avion(override var sistemaExterno : CalculadorDistancia) extends Transporte(200,500,500){
 
   override def distanciaEntreSucursales : Double = {
-    sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
+    var distancia = sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
+    if( distancia <= 1000 ) throw new EnvioConDistanciaMenorA1000KM()
+    else distancia
   }
   
-  //debe tirar una excepcion si es utilizado para distancias menor o igual a 1000km
+  override def costoPeajes : Double = 0
+  
+  override def costoEnvio: Double = {
+    if(sucursalOrigen.pais != sucursalDestino.pais) super.costoEnvio * 1.1
+    else super.costoEnvio
+  }
 }
 
 case class PaquetesDestinoErroneo() extends Exception
 case class TransporteSinCapacidad() extends Exception
+case class EnvioConDistanciaMenorA1000KM() extends Exception

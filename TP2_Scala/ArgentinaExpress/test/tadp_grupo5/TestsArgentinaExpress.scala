@@ -23,9 +23,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 		}
 	}
 
-	var sucursal1 = new Sucursal(10)
-	var sucursal2 = new Sucursal(20)
-    var sucursal3 = new Sucursal(10)
+	var sucursal1 = new Sucursal(10, "Argentina")
+	var sucursal2 = new Sucursal(20, "Argentina")
+    var sucursal3 = new Sucursal(10, "Uruguay")
 	
 	var camion = new Camion(SistemaExterno)
 	
@@ -144,7 +144,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  camion.asignarPaquetes(paquetes)
 	  
 	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
 	  
-	  assert(camion.gananciaEnvio == 90.0)
+	  assert(camion.gananciaEnvio == 66.0)
 	}
 }
