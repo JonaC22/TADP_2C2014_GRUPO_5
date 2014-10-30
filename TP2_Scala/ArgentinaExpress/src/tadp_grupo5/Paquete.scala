@@ -1,5 +1,6 @@
 package tadp_grupo5
 
 class Paquete (val sucursalOrigen : Sucursal, val sucursalDestino : Sucursal, val volumen : Int, val caracteristica : Caracteristica ) {
-	def costoBase : Int = caracteristica.costoBase
+	def costo: Double = caracteristica.costo
+	def precio: Double = caracteristica.precio
 }

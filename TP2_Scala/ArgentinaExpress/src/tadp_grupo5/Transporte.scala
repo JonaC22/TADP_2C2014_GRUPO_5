@@ -36,18 +36,30 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
     if(paquetes.exists(x => x.sucursalDestino != destino)) throw new PaquetesDestinoErroneo()
   }
   
-  def distanciaEntreSucursales : Double = 250.0 
+  def distanciaEntreSucursales : Double 
   
-  def costoDelViaje : Double = {
-    costoBasePaquetes + costo * distanciaEntreSucursales + costosAdicionales
+  def costoEnvio : Double = {
+    costoBasePaquetes + costoDelViaje
   }
   
-  def costoPeajes : Int = {
+  def gananciaEnvio : Double = {
+    precioPaquetes - costoEnvio
+  }
+  
+  def precioPaquetes : Double = {
+    pedidos.map(x => x.precio).sum
+  }
+  
+  def costoDelViaje : Double = {
+    costo * distanciaEntreSucursales
+  }
+  
+  def costoPeajes : Double = {
     sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
   }
   
-  def costoBasePaquetes : Int = {
-   pedidos.foldLeft(0)((b,a) => b+a.costoBase)
+  def costoBasePaquetes : Double = {
+    pedidos.map(x => x.costo).sum
   }
   
   def costosAdicionales : Int = {

@@ -27,9 +27,20 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var sucursal2 = new Sucursal(20)
     var sucursal3 = new Sucursal(10)
 	
+	var camion = new Camion(SistemaExterno)
+	
 	after{
+	  
+	  camion.pedidos = Nil
+	  sucursal1.paquetesEnEntrar = Nil
+	  sucursal1.paquetesEnSalir = Nil
+	  sucursal2.paquetesEnEntrar = Nil
+	  sucursal2.paquetesEnSalir = Nil
 	  sucursal3.paquetesEnEntrar = Nil
 	  sucursal3.paquetesEnSalir = Nil
+	  SistemaExterno.distanciaTerrestre  = 0.0
+	  SistemaExterno.distanciaAerea  = 0.0
+	  SistemaExterno.cantidadPeajes  = 0
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -57,20 +68,18 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	"Mock de Sistema Externo" should "responder a consultas" in {
 
 	  SistemaExterno.distanciaTerrestre  = 250.5
-	  SistemaExterno.distanciaAerea = 200.5
+	  SistemaExterno.distanciaAerea = 1200.5
 	  SistemaExterno.cantidadPeajes = 4
 	  
 	  assert(SistemaExterno.distanciaTerrestreEntre(sucursal1, sucursal2) == 250.5 )
-	  assert(SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2) == 200.5)
+	  assert(SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2) == 1200.5)
 	  assert(SistemaExterno.cantidadPeajesEntre(sucursal1, sucursal2) == 4)
 	}
 	
 	"Un transporte" should "tener capacidad" in {
-		var sucursal1 = new Sucursal(10)
-		var sucursal2 = new Sucursal(20)
+
 		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 
-		var camion = new Camion(SistemaExterno)
 		camion.asignarPaquetes(paquetesYaAsignados)
 		assert(camion.pedidos.size == 2)
 		assert(camion.capacidad == 15) //45 - 10 - 20 = 15
@@ -82,11 +91,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
 	
 	it should "no tener capacidad" in {
-		var sucursal1 = new Sucursal(10)
-		var sucursal2 = new Sucursal(20)
-		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 
-		var camion = new Camion(SistemaExterno)
+	  	var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
+	  	
 		camion.asignarPaquetes(paquetesYaAsignados)
 		assert(camion.pedidos.size == 2)
 		assert( camion.capacidad == 15) //45 - 10 - 20 = 15
@@ -101,11 +108,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
 	
 	it should "no llevar paquetes de destinos diferentes" in {
-	  var sucursal1 = new Sucursal(10)
-		var sucursal2 = new Sucursal(20)
+
 		var paquetesYaAsignados = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal1,20, Normal))
-		
-		var camion = new Camion(SistemaExterno)
 	  
 		intercept[PaquetesDestinoErroneo] {
 			camion.asignarPaquetes(paquetesYaAsignados) //asigno paquetes iniciales con destino distinto
@@ -132,5 +136,15 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 		camion.asignarPaquetes(paquetesNuevos)
 		assert(camion.pedidos.size == 4)
 		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 15
+	}
+	
+	it should "calcular la ganancia de un envio" in {
+	  var paquetes = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
+
+	  camion.asignarPaquetes(paquetes)
+	  
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  
+	  assert(camion.gananciaEnvio == 90.0)
 	}
 }
