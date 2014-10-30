@@ -12,12 +12,12 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   def capacidad : Int =  volumen - pedidos.map(_.volumen).sum
   
-  def asignarPaquetes(nuevosPaquetes : Seq[Paquete]) : Unit = {
+  def asignarPaquetes(nuevosPaquetes : Seq[Paquete]) {
     validarPaquetes(nuevosPaquetes)
     pedidos = pedidos ++ nuevosPaquetes
   }
   
-  def validarPaquetes(nuevosPaquetes : Seq[Paquete]) : Unit = {
+  def validarPaquetes(nuevosPaquetes : Seq[Paquete]) {
     validarCapacidad(nuevosPaquetes)
     validarDestinoPaquetes(nuevosPaquetes)
   }
@@ -26,7 +26,7 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
 	if(capacidad < nuevosPaquetes.map(_.volumen).sum) throw new TransporteSinCapacidad()
   }
   
-  def validarDestinoPaquetes(paquetes : Seq[Paquete]) : Unit = {
+  def validarDestinoPaquetes(paquetes : Seq[Paquete]) {
     var destino = paquetes.head.sucursalDestino
     
     if(pedidos.size != 0) destino = this.sucursalDestino
@@ -38,9 +38,11 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   def costoConCasaCentral : Double = sucursalDestino.esCasaCentral(this)
   
-  def costoEnvio : Double = costoBasePaquetes + costoDelViaje + costosAdicionales 
+  def costoEnvio : Double = costoBasePaquetes + costoDelViaje
   
-  def gananciaEnvio : Double = precioPaquetes - costoEnvio
+  def costoEnvioConAdicionales : Double = costoEnvio + costosAdicionales
+  
+  def gananciaEnvio : Double = precioPaquetes - costoEnvioConAdicionales
   
   def precioPaquetes : Double = pedidos.map(_.precio).sum
   
@@ -52,7 +54,7 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   def costoAdicionalCamionCasaCentral : Double = 0.0
   
-  def costosAdicionales : Double = costoConCasaCentral + costoPeajes
+  def costosAdicionales : Double = costoPeajes
 }
 
 case class Camion(override var sistemaExterno : CalculadorDistancia) extends Transporte(45, 100, 60){
@@ -61,6 +63,8 @@ case class Camion(override var sistemaExterno : CalculadorDistancia) extends Tra
   override def costoPeajes : Double = super.costoPeajes * 12
   
   override def costoAdicionalCamionCasaCentral : Double = costoDelViaje * 0.02
+  
+  override def costosAdicionales : Double = super.costosAdicionales + costoConCasaCentral
 }
 case class Furgoneta(override var sistemaExterno : CalculadorDistancia) extends Transporte(9,40,80){
   
@@ -76,11 +80,11 @@ case class Avion(override var sistemaExterno : CalculadorDistancia) extends Tran
     else distancia
   }
   
-  override def costoPeajes : Double = 0
+  override def costoPeajes : Double = 0.0
   
-  override def costoDelViaje: Double = {
-    if(sucursalOrigen.pais != sucursalDestino.pais) super.costoDelViaje * 1.1
-    else super.costoDelViaje
+  override def costosAdicionales: Double = {
+    if(sucursalOrigen.pais != sucursalDestino.pais) super.costosAdicionales + costoDelViaje * 0.1
+    else super.costoDelViaje   
   }
 }
 

@@ -28,6 +28,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
     var sucursal3 = new Sucursal(10, "Uruguay")
 	
 	var camion = new Camion(SistemaExterno)
+	var avion = new Avion(SistemaExterno)
+	
+	var paquetes = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 	
 	after{
 	  
@@ -139,7 +142,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
 	
 	it should "calcular la ganancia de un envio" in {
-	  var paquetes = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 
 	  camion.asignarPaquetes(paquetes)
 	  
@@ -147,5 +149,21 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  SistemaExterno.cantidadPeajes  = 2
 	  
 	  assert(camion.gananciaEnvio == 66.0)
+	}
+	
+	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
+	  avion.asignarPaquetes(paquetes)
+	  SistemaExterno.distanciaAerea = 900.0
+	  
+	  intercept[EnvioConDistanciaMenorA1000KM]{
+	    avion.gananciaEnvio
+	  }
+	  
+	  SistemaExterno.distanciaAerea = 1000.0
+	  
+	  intercept[EnvioConDistanciaMenorA1000KM]{
+	    avion.gananciaEnvio
+	  }
+	  
 	}
 }
