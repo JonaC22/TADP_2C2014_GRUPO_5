@@ -4,13 +4,9 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
   var paquetesEnSalir : Seq[Paquete] = Seq()
   var paquetesEnEntrar : Seq[Paquete] = Seq()
   
-  def capacidad : Int = {
-    volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
-  }
+  def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
-  def esCasaCentral(transporte : Transporte) : Double = {
-    0
-  }
+  def esCasaCentral(transporte : Transporte) : Double = 0.0
   
   def notificarRecepcion(paquetes : Seq[Paquete]) {
     validarCapacidad(paquetes)
@@ -22,14 +18,11 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
     paquetesEnSalir = paquetesEnSalir ++ paquetes
   } 
   
-  def validarCapacidad(paquetes : Seq[Paquete]) : Unit = {
-    if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
-  }
+  def validarCapacidad(paquetes : Seq[Paquete]) =  if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
 }
 
 case class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
-  override def esCasaCentral(transporte : Transporte) : Double = {
-    transporte.costoDelViaje * 0.02
-  }
+  override def esCasaCentral(transporte : Transporte) : Double = transporte.costoAdicionalCamionCasaCentral
 }
+
 case class SucursalSinCapacidad() extends Exception
