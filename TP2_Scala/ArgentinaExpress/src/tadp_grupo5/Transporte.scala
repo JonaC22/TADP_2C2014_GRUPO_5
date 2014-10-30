@@ -38,8 +38,12 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   def distanciaEntreSucursales : Double 
   
+  def costoConCasaCentral : Double = {
+    sucursalDestino.esCasaCentral(this)
+  }
+  
   def costoEnvio : Double = {
-    costoBasePaquetes + costoDelViaje + costoPeajes + costosAdicionales
+    costoBasePaquetes + costoDelViaje + costoPeajes + costosAdicionales + costoConCasaCentral
   }
   
   def gananciaEnvio : Double = {
@@ -89,9 +93,9 @@ case class Avion(override var sistemaExterno : CalculadorDistancia) extends Tran
   
   override def costoPeajes : Double = 0
   
-  override def costoEnvio: Double = {
-    if(sucursalOrigen.pais != sucursalDestino.pais) super.costoEnvio * 1.1
-    else super.costoEnvio
+  override def costoDelViaje: Double = {
+    if(sucursalOrigen.pais != sucursalDestino.pais) super.costoDelViaje * 1.1
+    else super.costoDelViaje
   }
 }
 

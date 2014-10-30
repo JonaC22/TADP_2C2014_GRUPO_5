@@ -8,6 +8,10 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
     volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   }
   
+  def esCasaCentral(transporte : Transporte) : Double = {
+    0
+  }
+  
   def notificarRecepcion(paquetes : Seq[Paquete]) {
     validarCapacidad(paquetes)
     paquetesEnEntrar = paquetesEnEntrar ++ paquetes
@@ -23,4 +27,9 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
   }
 }
 
+case class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
+  override def esCasaCentral(transporte : Transporte) : Double = {
+    transporte.costoDelViaje * 0.02
+  }
+}
 case class SucursalSinCapacidad() extends Exception
