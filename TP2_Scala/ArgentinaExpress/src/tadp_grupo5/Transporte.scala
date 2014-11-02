@@ -1,10 +1,8 @@
 package tadp_grupo5
 
-abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
+abstract class Transporte(volumen : Int, costo : Int, velocidad: Int, var servicioExtra : Option[ServicioExtra] = None){
   
   var sistemaExterno : CalculadorDistancia
-  
-  var servicioExtra : Option[ServicioExtra]//puede tener seguimiento satelital, seguimiento satelital con video o ninguno de los dos
 
   var pedidos : Seq[Paquete] = Seq()
   
@@ -68,7 +66,7 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   def costosAdicionales : Double = costoPeajes + costoServicioExtra
 }
 
-case class Camion(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(45, 100, 60){
+case class Camion(override var sistemaExterno : CalculadorDistancia) extends Transporte(45, 100, 60){
   override def distanciaEntreSucursales : Double = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   
   override def costoPeajes : Double = super.costoPeajes * 12
@@ -78,14 +76,14 @@ case class Camion(override var sistemaExterno : CalculadorDistancia, override va
   override def costosAdicionales : Double = super.costosAdicionales + costoConCasaCentral
 }
 
-case class Furgoneta(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(9,40,80){
+case class Furgoneta(override var sistemaExterno : CalculadorDistancia) extends Transporte(9,40,80){
   
   override def distanciaEntreSucursales : Double = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   
   override def costoPeajes : Double = super.costoPeajes * 6
 }
 
-case class Avion(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(200,500,500){
+case class Avion(override var sistemaExterno : CalculadorDistancia) extends Transporte(200,500,500){
 
   override def distanciaEntreSucursales : Double = {
     var distancia = sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)

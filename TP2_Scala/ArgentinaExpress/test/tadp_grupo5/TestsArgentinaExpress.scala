@@ -28,14 +28,15 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var sucursal2 = new Sucursal(20, "Argentina")
     var sucursal3 = new Sucursal(10, "Uruguay")
 	
-	var camion = new Camion(SistemaExterno,Some(SeguimientoSatelital))
-	var avion = new Avion(SistemaExterno, None)
+	var camion = new Camion(SistemaExterno)
+	var avion = new Avion(SistemaExterno)
 	
 	var paquetes = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 	
 	after{
 	  
 	  camion.pedidos = Nil
+	  camion.servicioExtra = None
 	  sucursal1.paquetesEnEntrar = Nil
 	  sucursal1.paquetesEnSalir = Nil
 	  sucursal2.paquetesEnEntrar = Nil
@@ -145,6 +146,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	it should "calcular la ganancia de un envio" in {
 
 	  camion.asignarPaquetes(paquetes)
+	  camion.servicioExtra = Some(SeguimientoSatelital)
 	  
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
