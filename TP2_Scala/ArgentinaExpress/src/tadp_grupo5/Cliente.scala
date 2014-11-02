@@ -1,7 +1,6 @@
 package tadp_grupo5
 
 import scala.collection.mutable.Buffer
-import com.sun.xml.internal.ws.api.message.Message
 
 class Cliente(var sucursalOrigen: Sucursal, var sucursalDestino: Sucursal) {
 
