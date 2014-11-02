@@ -149,7 +149,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  
-	  assert(camion.gananciaEnvio == 66.0)
+	  assert(camion.gananciaEnvio == 65.5)//160 - (20 + 100*0.5 + 2*12 + 0.5)
 	}
 	
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
