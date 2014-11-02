@@ -1,24 +1,38 @@
 package tadp_grupo5
 
+import scala.collection.mutable.Buffer
+
 class Sucursal (volumenDeposito : Int, val pais : String) {
-  var paquetesEnSalir : Seq[Paquete] = Seq()
-  var paquetesEnEntrar : Seq[Paquete] = Seq()
+  var paquetesEnSalir : Buffer[Paquete] = Buffer()
+  var paquetesEnEntrar : Buffer[Paquete] = Buffer()
   
   def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
   def esCasaCentral(transporte : Transporte) : Double = 0.0
   
-  def notificarRecepcion(paquetes : Seq[Paquete]) {
+  def notificarPaquetesAEntrar(paquetes : Buffer[Paquete]) {
     validarCapacidad(paquetes)
-    paquetesEnEntrar = paquetesEnEntrar ++ paquetes
+    paquetesEnEntrar ++= paquetes
   }
   
-  def notificarEnvios(paquetes : Seq[Paquete]) {
+  def notificarPaquetesASalir(paquetes : Buffer[Paquete]) {
     validarCapacidad(paquetes)
-    paquetesEnSalir = paquetesEnSalir ++ paquetes
+    paquetesEnSalir ++= paquetes
   } 
   
-  def validarCapacidad(paquetes : Seq[Paquete]) =  if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
+  def descargarEnvios(pedidos : Buffer[Paquete]){
+    pedidos.foreach(x => descargarEnvio(x))
+  }
+  
+  def descargarEnvio(pedido : Paquete){
+    if(pedido.sucursalDestino  == this){
+      paquetesEnEntrar = paquetesEnEntrar.filterNot(_== pedido)
+    }
+    else paquetesEnSalir = paquetesEnSalir.filterNot(_== pedido)
+  }
+  
+  def validarCapacidad(paquetes : Buffer[Paquete]) =  if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
+  def validarCapacidad(paquete : Paquete) = if (capacidad == 0) throw new SucursalSinCapacidad()
 }
 
 case class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){

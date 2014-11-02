@@ -1,10 +1,29 @@
 package tadp_grupo5
 
-class Cliente {
+import scala.collection.mutable.Buffer
+import com.sun.xml.internal.ws.api.message.Message
 
-	def generarEnvio(sucursalOrigen : Sucursal, sucursalDestino : Sucursal, volumenPaquete : Int, caracteristicaDePaquete : Caracteristica) : Unit = {
-	  Seq(new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete))
-	  sucursalOrigen.notificarEnvios(Seq(new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete)))
-	  sucursalDestino.notificarRecepcion(Seq(new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete)))
-	}
+class Cliente(var sucursalOrigen: Sucursal, var sucursalDestino: Sucursal) {
+
+  var paquetes: Buffer[Paquete] = Buffer()
+
+  def generarPaquete(volumenPaquete: Int, caracteristicaDePaquete: Caracteristica) {
+    validarSucursales
+    paquetes += new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete)
+  }
+  
+  def validarSucursales = if(paquetes.nonEmpty && !paqueteConSucursalesCorrectas(paquetes.head)) throw new PaquetesConSucursalesDistintas()
+
+  def paqueteConSucursalesCorrectas(paquete : Paquete) : Boolean = {
+    paquete.sucursalOrigen == sucursalOrigen && paquete.sucursalDestino == sucursalDestino
+  }
+  
+  def pedirEnvio(transporte : Transporte) {
+    transporte.asignarPaquetes(paquetes)
+	sucursalDestino.notificarPaquetesAEntrar(paquetes)
+	sucursalOrigen.notificarPaquetesASalir(paquetes)
+	paquetes = Buffer()
+  }
 }
+
+case class PaquetesConSucursalesDistintas() extends Exception
