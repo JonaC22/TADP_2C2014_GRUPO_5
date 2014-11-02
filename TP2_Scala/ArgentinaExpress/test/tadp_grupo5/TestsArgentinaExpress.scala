@@ -22,13 +22,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 			cantidadPeajes
 		}
 	}
+	
 
 	var sucursal1 = new Sucursal(10, "Argentina")
 	var sucursal2 = new Sucursal(20, "Argentina")
     var sucursal3 = new Sucursal(10, "Uruguay")
 	
-	var camion = new Camion(SistemaExterno)
-	var avion = new Avion(SistemaExterno)
+	var camion = new Camion(SistemaExterno,Some(SeguimientoSatelital))
+	var avion = new Avion(SistemaExterno, None)
 	
 	var paquetes = Seq(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 	

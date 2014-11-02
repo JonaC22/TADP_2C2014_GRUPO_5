@@ -3,6 +3,8 @@ package tadp_grupo5
 abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   var sistemaExterno : CalculadorDistancia
+  
+  var servicioExtra : Option[ServicioExtra]//puede tener seguimiento satelital, seguimiento satelital con video o ninguno de los dos
 
   var pedidos : Seq[Paquete] = Seq()
   
@@ -34,6 +36,8 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
     if(paquetes.exists(x => x.sucursalDestino != destino)) throw new PaquetesDestinoErroneo()
   }
   
+  def volumenOcupadoAceptable : Boolean = capacidad >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
+  
   def distanciaEntreSucursales : Double 
   
   def costoConCasaCentral : Double = sucursalDestino.esCasaCentral(this)
@@ -54,10 +58,18 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   
   def costoAdicionalCamionCasaCentral : Double = 0.0
   
-  def costosAdicionales : Double = costoPeajes
+  def costoServicioExtra : Double = {
+    servicioExtra match{
+      case Some(extra : ServicioExtra) => extra.costoAdicional(distanciaEntreSucursales * 2)// ida y vuelta
+      case None => 0
+      case _ => 0 //hace falta tener un caso default??
+    }
+  }
+  
+  def costosAdicionales : Double = costoPeajes + costoServicioExtra
 }
 
-case class Camion(override var sistemaExterno : CalculadorDistancia) extends Transporte(45, 100, 60){
+case class Camion(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(45, 100, 60){
   override def distanciaEntreSucursales : Double = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   
   override def costoPeajes : Double = super.costoPeajes * 12
@@ -66,13 +78,15 @@ case class Camion(override var sistemaExterno : CalculadorDistancia) extends Tra
   
   override def costosAdicionales : Double = super.costosAdicionales + costoConCasaCentral
 }
-case class Furgoneta(override var sistemaExterno : CalculadorDistancia) extends Transporte(9,40,80){
+
+case class Furgoneta(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(9,40,80){
   
   override def distanciaEntreSucursales : Double = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
   
   override def costoPeajes : Double = super.costoPeajes * 6
 }
-case class Avion(override var sistemaExterno : CalculadorDistancia) extends Transporte(200,500,500){
+
+case class Avion(override var sistemaExterno : CalculadorDistancia, override var servicioExtra : Option[ServicioExtra]) extends Transporte(200,500,500){
 
   override def distanciaEntreSucursales : Double = {
     var distancia = sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
