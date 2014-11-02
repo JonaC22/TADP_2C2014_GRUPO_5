@@ -59,11 +59,10 @@ abstract class Transporte(volumen : Int, costo : Int, velocidad: Int){
   def costoAdicionalCamionCasaCentral : Double = 0.0
   
   def costoServicioExtra : Double = {
-    servicioExtra match{
-      case Some(extra : ServicioExtra) => extra.costoAdicional(distanciaEntreSucursales * 2)// ida y vuelta
-      case None => 0
-      case _ => 0 //hace falta tener un caso default??
+    if(!servicioExtra.isEmpty){
+      servicioExtra.get.costoAdicional(distanciaEntreSucursales * 2) // ida y vuelta
     }
+    else 0.0
   }
   
   def costosAdicionales : Double = costoPeajes + costoServicioExtra
