@@ -158,12 +158,25 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	it should "calcular la ganancia de un envio" in {
 
 	  camion.asignarPaquetes(paquetes)
-	  camion.servicioExtra = Some(SeguimientoSatelital)
+
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
 	  
+	  assert(camion.gananciaEnvio == 66)
+	}
+	
+	it should "calcular la ganancia de un envio con distintos seguimientos" in {
+
+	  camion.asignarPaquetes(paquetes)
+	  camion.servicioExtra = Some(SeguimientoSatelital)
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  
 	  assert(camion.gananciaEnvio == 65.5)//160 - (20 + 100*0.5 + 2*12 + 0.5)
+
+	  camion.servicioExtra = Some(SeguimientoSatelitalConVideo)
+	  
+	  assert(camion.gananciaEnvio == 62.25999999999999)
 	}
 	
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
@@ -179,6 +192,10 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  intercept[EnvioConDistanciaMenorA1000KM]{
 	    avion.gananciaEnvio
 	  }	  
+	  
+	  SistemaExterno.distanciaAerea = 1100.0
+	  
+	  assert(avion.gananciaEnvio == -1099860)
 	}
 	
 	"Las estadisticas" should "mostrar ganancia total de todos los transportes en analisis" in {
