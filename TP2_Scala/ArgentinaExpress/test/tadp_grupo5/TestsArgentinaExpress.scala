@@ -3,6 +3,7 @@ package tadp_grupo5
 import org.scalatest._
 
 import scala.collection.mutable.Buffer
+import scala.collection.mutable.Set
 
 class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
   
@@ -29,6 +30,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var sucursal2 = new Sucursal(20, "Argentina")
     var sucursal3 = new Sucursal(10, "Uruguay")
 	
+	var sucursales = Buffer(sucursal1, sucursal2, sucursal3)
+	
 	var cliente = new Cliente(sucursal1, sucursal2)
 	  
 	var estadisticas = new Estadisticas()
@@ -37,27 +40,26 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var avion = new Avion(SistemaExterno)
 	var furgoneta = new Furgoneta(SistemaExterno)
 	
+	var transportes = Buffer(camion, avion, furgoneta)
+	
 	var paquetes = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 	var paquetesUrgentes = Buffer(new Paquete(sucursal1, sucursal2,10, Urgente), new Paquete(sucursal1, sucursal2,20, Urgente))
+	var paquetesConRefrigeracion = Buffer(new Paquete(sucursal1, sucursal2,10, NecesitaRefrigeracion), new Paquete(sucursal1, sucursal2,20, NecesitaRefrigeracion))
+	
 	after{
 	  cliente.paquetes = Buffer()
 	  cliente.sucursalOrigen = sucursal1
 	  cliente.sucursalDestino = sucursal2
-	  camion.pedidos = Buffer()
-	  camion.servicioExtra = None
-	  avion.pedidos = Buffer()
-	  avion.servicioExtra = None
-	  furgoneta.pedidos = Buffer()
-	  furgoneta.servicioExtra = None
-	  sucursal1.paquetesEnEntrar = Buffer()
-	  sucursal1.paquetesEnSalir = Buffer()
-	  sucursal2.paquetesEnEntrar = Buffer()
-	  sucursal2.paquetesEnSalir = Buffer()
-	  sucursal3.paquetesEnEntrar = Buffer()
-	  sucursal3.paquetesEnSalir = Buffer()
+	  transportes.foreach(_.pedidos = Buffer())
+	  transportes.foreach(_.servicioExtra = None)
+	  transportes.foreach(_.infraestructura = None)
+	  transportes.foreach(_.tipoDePaquetesValidos = Buffer(Normal))
+	  sucursales.foreach(_.paquetesEnEntrar = Buffer())
+	  sucursales.foreach(_.paquetesEnSalir = Buffer())
 	  SistemaExterno.distanciaTerrestre  = 0.0
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
+	  estadisticas.transportesEnEstudio = Set()
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -201,7 +203,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  assert(camion.costoEnvioConAdicionales == 24181)//20 + 100*240 + 2*12 + 137
 	}
 	
+	"Un camion" should "poder llevar paquetes con refrigeracion" in {
+	  camion.asignarPaquetes(paquetesConRefrigeracion)
+	  assert(camion.pedidos.size == 2)
+	}
+	
 	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  camion.asignarPaquetes(paquetesUrgentes)
 	  camion.infraestructura = Some(SustanciasPeligrosas)
 	  SistemaExterno.distanciaTerrestre = 0.5
@@ -230,28 +238,28 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  assert(avion.gananciaEnvio == -1099860)
 	}
 	
+	it should "no poder llevar paquetes con refrigeracion" in {
+	  intercept[PaqueteTipoInvalido]{
+	    avion.asignarPaquetes(paquetesConRefrigeracion)
+	  }
+	}
+	
 	"Las estadisticas" should "mostrar ganancia total de todos los transportes en analisis" in {
 	  
 	  estadisticas agregarTransporte(camion)
 	  estadisticas agregarTransporte(furgoneta)
 	  
 	  cliente.generarPaquete(1, Normal)
+	  cliente.pedirEnvio(camion)
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 70) //80 - 10 = 70
+	  
 	  cliente.generarPaquete(3, Normal)
-	  cliente.generarPaquete(2, Normal)
 	  cliente.pedirEnvio(camion)
-	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 210) //80 + 80 + 80 - 10 - 10 - 10 = 210
-	  
-	  cliente.generarPaquete(1, Normal)
-	  cliente.generarPaquete(1, Normal)
-	  cliente.generarPaquete(1, Normal)
-	  cliente.pedirEnvio(camion)
-	  
-	  camion.hacerEnvio
-	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 420) 
+	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 140) // 2*(80 - 10) = 140
 	  
 	  cliente.sucursalOrigen = sucursal3
 	  cliente.sucursalDestino = sucursal1
@@ -259,9 +267,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  cliente.generarPaquete(3, Normal)
 	  cliente.generarPaquete(4, Normal)
 	  cliente.pedirEnvio(furgoneta)
-	  
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 630)
+	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 350) //5*(80 - 10) = 350
 	}
 }

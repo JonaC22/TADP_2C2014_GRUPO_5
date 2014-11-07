@@ -3,13 +3,15 @@ package tadp_grupo5
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 
-abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
+abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
   var sistemaExterno: CalculadorDistancia
 
   var pedidos: Buffer[Paquete] = Buffer()
 
   var historialEnvios: Queue[Envio] = Queue()
+  
+  var tipoDePaquetesValidos : Buffer[Caracteristica] = Buffer(Normal)
 
   def sucursalOrigen: Sucursal = pedidos.head.sucursalOrigen
 
@@ -38,8 +40,24 @@ abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicio
   }
 
   def validarPaquetes(nuevosPaquetes: Buffer[Paquete]) {
+    validarTiposDePaquetes(nuevosPaquetes)
     validarCapacidad(nuevosPaquetes)
     validarDestinoPaquetes(nuevosPaquetes)
+  }
+  
+  def validarTiposDePaquetes(nuevosPaquetes : Buffer[Paquete]) {
+    if(!nuevosPaquetes.forall(x => validarTipoDePaquete(x))){
+      throw new PaqueteTipoInvalido()
+    }
+  }
+  
+  def validarTipoDePaquete(paquete : Paquete) : Boolean = {
+    if(paquete.caracteristica != NecesitaRefrigeracion){ //el camion es el unico que puede llevar paquetes que necesitan refrigeracion
+      tipoDePaquetesValidos.contains(paquete.caracteristica)
+    }
+    else{
+      false
+    }
   }
 
   def validarCapacidad(nuevosPaquetes: Buffer[Paquete]) {
@@ -76,9 +94,6 @@ abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicio
 
   def costoAdicionalCamionCasaCentral: Double = 0.0
 
-  def costoExtras : Double = {
-    costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes
-  }
   def costoServicioExtra: Double = {
     if (!servicioExtra.isEmpty) {
       servicioExtra.get.costoAdicional(distanciaEntreSucursales * 2) // ida y vuelta
@@ -92,15 +107,10 @@ abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicio
   }
   
   def costoSustanciasUrgentes : Double = {
-    if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
+    0.0
   }
-
-  def costoAdicionalPaquetesUrgentes : Double = {
-    var volUrgentes : Double = pedidos.filter(pedido => pedido.caracteristica == Urgente).map(_.volumen).sum
-    3 * (volUrgentes / volumen)
-    //ver si es por paquete urgente individualmente o en conjunto
-  }
-  def costosAdicionales: Double = costoPeajes + costoExtras
+  
+  def costosAdicionales: Double = costoPeajes + costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes
 }
 
 case class Camion(override var sistemaExterno: CalculadorDistancia) extends Transporte(45, 100, 60) {
@@ -111,6 +121,25 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
   override def costoAdicionalCamionCasaCentral: Double = costoDelViaje * 0.02
 
   override def costosAdicionales: Double = super.costosAdicionales + costoConCasaCentral
+  
+  override def validarTipoDePaquete(paquete : Paquete) : Boolean = {
+    if(paquete.caracteristica == NecesitaRefrigeracion){
+      true
+    }
+    else {
+      super.validarTipoDePaquete(paquete)
+    }
+  }
+  
+  override def costoSustanciasUrgentes : Double = {
+    if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
+  }
+  
+  def costoAdicionalPaquetesUrgentes : Double = {
+    var volUrgentes : Double = pedidos.filter(pedido => pedido.caracteristica == Urgente).map(_.volumen).sum
+    3 * (volUrgentes / volumen)
+    //ver si es por paquete urgente individualmente o en conjunto
+  }
 }
 
 case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends Transporte(9, 40, 80) {
@@ -136,6 +165,7 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
   }
 }
 
+case class PaqueteTipoInvalido() extends Exception
 case class PaquetesDestinoErroneo() extends Exception
 case class TransporteSinCapacidad() extends Exception
 case class EnvioConDistanciaMenorA1000KM() extends Exception
