@@ -3,7 +3,7 @@ package tadp_grupo5
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 
-abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None) {
+abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
   var sistemaExterno: CalculadorDistancia
 
@@ -76,13 +76,31 @@ abstract class Transporte(volumen: Int, costo: Int, velocidad: Int, var servicio
 
   def costoAdicionalCamionCasaCentral: Double = 0.0
 
+  def costoExtras : Double = {
+    costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes
+  }
   def costoServicioExtra: Double = {
     if (!servicioExtra.isEmpty) {
       servicioExtra.get.costoAdicional(distanciaEntreSucursales * 2) // ida y vuelta
     } else 0.0
   }
+  
+  def costoInfraestructura : Double = {
+    if (!infraestructura.isEmpty) {
+      infraestructura.get.costoAdicional(distanciaEntreSucursales)
+    } else 0.0
+  }
+  
+  def costoSustanciasUrgentes : Double = {
+    if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
+  }
 
-  def costosAdicionales: Double = costoPeajes + costoServicioExtra
+  def costoAdicionalPaquetesUrgentes : Double = {
+    var volUrgentes : Double = pedidos.filter(pedido => pedido.caracteristica == Urgente).map(_.volumen).sum
+    3 * (volUrgentes / volumen)
+    //ver si es por paquete urgente individualmente o en conjunto
+  }
+  def costosAdicionales: Double = costoPeajes + costoExtras
 }
 
 case class Camion(override var sistemaExterno: CalculadorDistancia) extends Transporte(45, 100, 60) {

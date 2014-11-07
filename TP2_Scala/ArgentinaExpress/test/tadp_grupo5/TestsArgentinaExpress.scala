@@ -38,7 +38,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var furgoneta = new Furgoneta(SistemaExterno)
 	
 	var paquetes = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-	
+	var paquetesUrgentes = Buffer(new Paquete(sucursal1, sucursal2,10, Urgente), new Paquete(sucursal1, sucursal2,20, Urgente))
 	after{
 	  cliente.paquetes = Buffer()
 	  cliente.sucursalOrigen = sucursal1
@@ -177,6 +177,38 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  camion.servicioExtra = Some(SeguimientoSatelitalConVideo)
 	  
 	  assert(camion.gananciaEnvio == 62.25999999999999)
+	}
+	
+	it should "calcular el costo de un envio dependiendo la infraestructura" in {
+	  camion.asignarPaquetes(paquetes)
+	  camion.infraestructura = Some(SustanciasPeligrosas)
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
+	  
+	  assert(camion.costoEnvioConAdicionales == 694)//20 + 100*0.5 + 2*12 + 600
+	
+	  camion.infraestructura = Some(Animales)
+	  //distancia menor a 100km
+	  SistemaExterno.distanciaTerrestre = 50
+	  assert(camion.costoEnvioConAdicionales == 5094)//20 + 100*50 + 2*12 + 50
+	  
+	  //distancia menor a 200km
+	  SistemaExterno.distanciaTerrestre = 130
+	  assert(camion.costoEnvioConAdicionales == 13130)//20 + 100*130 + 2*12 + 86
+	  
+	  //distancia mayor a 200km
+	  SistemaExterno.distanciaTerrestre = 240
+	  assert(camion.costoEnvioConAdicionales == 24181)//20 + 100*240 + 2*12 + 137
+	}
+	
+	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
+	  camion.asignarPaquetes(paquetesUrgentes)
+	  camion.infraestructura = Some(SustanciasPeligrosas)
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
+	  
+	  assert(camion.costoEnvioConAdicionales == 716)//40 + 100*0.5 + 2*12 + 600 + 3*((10+20)/45)
+	  // ver si el calculo vol_paquete_urgente/vol_transporte es por paquete urgente o en conjunto
 	}
 	
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
