@@ -45,6 +45,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	var paquetes = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
 	var paquetesUrgentes = Buffer(new Paquete(sucursal1, sucursal2,10, Urgente), new Paquete(sucursal1, sucursal2,20, Urgente))
 	var paquetesConRefrigeracion = Buffer(new Paquete(sucursal1, sucursal2,10, NecesitaRefrigeracion), new Paquete(sucursal1, sucursal2,20, NecesitaRefrigeracion))
+	var paquetesMixto = Buffer(new Paquete(sucursal1, sucursal2,1, Urgente), new Paquete(sucursal1, sucursal2,2, Fragil))
 	
 	after{
 	  cliente.paquetes = Buffer()
@@ -155,6 +156,19 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 		camion.asignarPaquetes(paquetesNuevos)
 		assert(camion.pedidos.size == 4)
 		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 15
+	}
+	
+	it should "llevar tipos de paquetes especificados" in {
+	  intercept[PaqueteTipoInvalido]{
+	    furgoneta.asignarPaquetes(paquetesMixto) //no puede llevar paquetes fragiles ni urgentes
+	  }
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  intercept[PaqueteTipoInvalido]{
+	    furgoneta.asignarPaquetes(paquetesMixto) //aun no puede enviar el paquete fragil
+	  }
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente, Fragil)
+	  furgoneta.asignarPaquetes(paquetesMixto)
+	  assert(furgoneta.pedidos.size == 2)
 	}
 	
 	it should "calcular la ganancia de un envio" in {
