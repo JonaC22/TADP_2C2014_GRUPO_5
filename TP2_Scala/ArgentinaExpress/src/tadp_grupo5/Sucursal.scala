@@ -5,19 +5,38 @@ import scala.collection.mutable.Buffer
 class Sucursal (volumenDeposito : Int, val pais : String) {
   var paquetesEnSalir : Buffer[Paquete] = Buffer()
   var paquetesEnEntrar : Buffer[Paquete] = Buffer()
+  var transportes : Buffer[Transporte] = Buffer()
   
   def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
   def esCasaCentral(transporte : Transporte) : Double = 0.0
   
-  def notificarPaquetesAEntrar(paquetes : Buffer[Paquete]) {
-    validarCapacidad(paquetes)
-    paquetesEnEntrar ++= paquetes
+  def asignarPaquete(paquete : Paquete) {
+    if(transportes.size != 0){
+      var transporte : Option[Transporte] = transportes.find( x => x.puedeLlevarPaquete(paquete))
+      transporte.get.asignarPaquete(paquete)
+    }
   }
   
-  def notificarPaquetesASalir(paquetes : Buffer[Paquete]) {
-    validarCapacidad(paquetes)
-    paquetesEnSalir ++= paquetes
+  def paquetesPendientes : Buffer[Paquete] = {
+	  paquetesEnSalir.filterNot(x => transportes.exists(_.pedidos.contains(x)))
+  }
+  
+  def asignarPendientes(){
+    var paquetes = paquetesPendientes
+    if(paquetes != 0) paquetes.foreach(x => asignarPaquete(x))
+  }
+  
+  def notificarPaqueteAEntrar(paquete : Paquete) {
+    validarCapacidad(paquete)
+    paquetesEnEntrar += paquete
+  }
+  
+  def notificarPaqueteASalir(paquete : Paquete) {
+    validarCapacidad(paquete)
+    paquetesEnSalir += paquete
+    asignarPaquete(paquete)
+    asignarPendientes
   } 
   
   def descargarEnvios(pedidos : Buffer[Paquete]){
@@ -30,9 +49,8 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
     }
     else paquetesEnSalir = paquetesEnSalir.filterNot(_== pedido)
   }
-  
-  def validarCapacidad(paquetes : Buffer[Paquete]) =  if (capacidad < paquetes.map(_.volumen).sum) throw new SucursalSinCapacidad()
-  def validarCapacidad(paquete : Paquete) = if (capacidad == 0) throw new SucursalSinCapacidad()
+
+  def validarCapacidad(paquete : Paquete) = if (capacidad < paquete.volumen) throw new SucursalSinCapacidad()
 }
 
 case class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){

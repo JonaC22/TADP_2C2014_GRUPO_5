@@ -34,24 +34,35 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
     pedidos = Buffer()
   }
 
-  def asignarPaquetes(nuevosPaquetes: Buffer[Paquete]) {
-    validarPaquetes(nuevosPaquetes)
-    pedidos ++= nuevosPaquetes
-  }
-
-  def validarPaquetes(nuevosPaquetes: Buffer[Paquete]) {
-    validarTiposDePaquetes(nuevosPaquetes)
-    validarCapacidad(nuevosPaquetes)
-    validarDestinoPaquetes(nuevosPaquetes)
+  def asignarPaquete(nuevoPaquete : Paquete) {
+    validarPaquete(nuevoPaquete)
+    pedidos += nuevoPaquete
   }
   
-  def validarTiposDePaquetes(nuevosPaquetes : Buffer[Paquete]) {
-    if(!nuevosPaquetes.forall(x => validarTipoDePaquete(x))){
+  def puedeLlevarPaquete(nuevoPaquete : Paquete) : Boolean = {
+    try { 
+      validarPaquete(nuevoPaquete) 
+      true
+    } 
+    catch {
+      case tex : TransporteException => false
+      case ex : Exception => throw ex
+    }
+  }
+
+  def validarPaquete(nuevoPaquete : Paquete) {
+    validarTipoDePaquete(nuevoPaquete)
+    validarCapacidad(nuevoPaquete)
+    validarDestinoPaquete(nuevoPaquete)
+  }
+  
+  def validarTipoDePaquete(paquete: Paquete) {
+    if(!puedeLlevarTipoDePaquete(paquete)){
       throw new PaqueteTipoInvalido()
     }
   }
   
-  def validarTipoDePaquete(paquete : Paquete) : Boolean = {
+  def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
     if(paquete.caracteristica != NecesitaRefrigeracion){ //el camion es el unico que puede llevar paquetes que necesitan refrigeracion
       tipoDePaquetesValidos.contains(paquete.caracteristica)
     }
@@ -60,16 +71,12 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
     }
   }
 
-  def validarCapacidad(nuevosPaquetes: Buffer[Paquete]) {
-    if (capacidad < nuevosPaquetes.map(_.volumen).sum) throw new TransporteSinCapacidad()
+  def validarCapacidad(nuevoPaquete: Paquete) {
+    if (capacidad < nuevoPaquete.volumen) throw new TransporteSinCapacidad()
   }
 
-  def validarDestinoPaquetes(paquetes: Buffer[Paquete]) {
-    var destino = paquetes.head.sucursalDestino
-
-    if (pedidos.size != 0) destino = this.sucursalDestino
-
-    if (paquetes.exists(x => x.sucursalDestino != destino)) throw new PaquetesDestinoErroneo()
+  def validarDestinoPaquete(nuevoPaquete: Paquete) {
+    if (pedidos.size != 0 && nuevoPaquete.sucursalDestino != sucursalDestino) throw new PaquetesDestinoErroneo()
   }
 
   def volumenOcupadoAceptable: Boolean = capacidad >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
@@ -122,12 +129,12 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
 
   override def costosAdicionales: Double = super.costosAdicionales + costoConCasaCentral
   
-  override def validarTipoDePaquete(paquete : Paquete) : Boolean = {
+  override def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
     if(paquete.caracteristica == NecesitaRefrigeracion){
       true
     }
     else {
-      super.validarTipoDePaquete(paquete)
+      super.puedeLlevarTipoDePaquete(paquete)
     }
   }
   
@@ -165,7 +172,8 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
   }
 }
 
-case class PaqueteTipoInvalido() extends Exception
-case class PaquetesDestinoErroneo() extends Exception
-case class TransporteSinCapacidad() extends Exception
-case class EnvioConDistanciaMenorA1000KM() extends Exception
+abstract class TransporteException() extends Exception
+case class PaqueteTipoInvalido() extends TransporteException
+case class PaquetesDestinoErroneo() extends TransporteException
+case class TransporteSinCapacidad() extends TransporteException
+case class EnvioConDistanciaMenorA1000KM() extends TransporteException

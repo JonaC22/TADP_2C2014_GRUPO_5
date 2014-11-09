@@ -12,45 +12,50 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 		var distanciaAerea :Double = 0.0
 		var cantidadPeajes : Int = 0
 
-		override def distanciaTerrestreEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
+		override def distanciaTerrestreEntre(sucursal10: Sucursal, sucursal20: Sucursal): Double = {
 			distanciaTerrestre
 		}
 
-		override def distanciaAereaEntre(sucursal1: Sucursal, sucursal2: Sucursal): Double = {
+		override def distanciaAereaEntre(sucursal10: Sucursal, sucursal20: Sucursal): Double = {
 			distanciaAerea
 		}
 
-		override def cantidadPeajesEntre(sucursal1: Sucursal, sucursal2: Sucursal): Int = {
+		override def cantidadPeajesEntre(sucursal10: Sucursal, sucursal20: Sucursal): Int = {
 			cantidadPeajes
 		}
 	}
-	
 
-	var sucursal1 = new Sucursal(10, "Argentina")
-	var sucursal2 = new Sucursal(20, "Argentina")
-    var sucursal3 = new Sucursal(10, "Uruguay")
+	val sucursal10 = new Sucursal(10, "Argentina")
+	val sucursal20 = new Sucursal(20, "Argentina")
+    val sucursal30 = new Sucursal(30, "Uruguay")
 	
-	var sucursales = Buffer(sucursal1, sucursal2, sucursal3)
+	val sucursales = Buffer(sucursal10, sucursal20, sucursal30)
 	
-	var cliente = new Cliente(sucursal1, sucursal2)
+	val cliente = new Cliente(sucursal10, sucursal20)
 	  
-	var estadisticas = new Estadisticas()
+	val estadisticas = new Estadisticas()
 	
-	var camion = new Camion(SistemaExterno)
-	var avion = new Avion(SistemaExterno)
-	var furgoneta = new Furgoneta(SistemaExterno)
+	val camion = new Camion(SistemaExterno)
+	val avion = new Avion(SistemaExterno)
+	val furgoneta = new Furgoneta(SistemaExterno)
 	
-	var transportes = Buffer(camion, avion, furgoneta)
+	val transportes = Buffer(camion, avion, furgoneta)
 	
-	var paquetes = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-	var paquetesUrgentes = Buffer(new Paquete(sucursal1, sucursal2,10, Urgente), new Paquete(sucursal1, sucursal2,20, Urgente))
-	var paquetesConRefrigeracion = Buffer(new Paquete(sucursal1, sucursal2,10, NecesitaRefrigeracion), new Paquete(sucursal1, sucursal2,20, NecesitaRefrigeracion))
-	var paquetesMixto = Buffer(new Paquete(sucursal1, sucursal2,1, Urgente), new Paquete(sucursal1, sucursal2,2, Fragil))
+	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
+	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
+	val paquete2 = new Paquete(sucursal10, sucursal20,2, Normal)
+	val paquete5 =new Paquete(sucursal30, sucursal20,5, Normal)
+	val paquete10 = new Paquete(sucursal10, sucursal20,10, Normal)
+	val paquete20 = new Paquete(sucursal10, sucursal20,20, Normal)
+	val paqueteConMuchoVolumen = new Paquete(sucursal10, sucursal20, 9999, Normal)
+	val paqueteUrgente = new Paquete(sucursal10, sucursal20,1, Urgente) 
+	val paqueteConRefrigeracion = new Paquete(sucursal10, sucursal20,10, NecesitaRefrigeracion)
+	val paqueteFragil = new Paquete(sucursal10, sucursal20,2, Fragil)
 	
 	after{
-	  cliente.paquetes = Buffer()
-	  cliente.sucursalOrigen = sucursal1
-	  cliente.sucursalDestino = sucursal2
+	  cliente.paquete = null
+	  cliente.sucursalOrigen = sucursal10
+	  cliente.sucursalDestino = sucursal20
 	  transportes.foreach(_.pedidos = Buffer())
 	  transportes.foreach(_.servicioExtra = None)
 	  transportes.foreach(_.infraestructura = None)
@@ -64,24 +69,21 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
     
 	"Una sucursal" should "tener capacidad" in {
-		var esperandoSalida = Buffer(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,3, Normal))
-		sucursal3.notificarPaquetesASalir(esperandoSalida)
-		assert(sucursal3.capacidad == 6) //10 - 1 - 3 = 6
+		sucursal10.notificarPaqueteASalir(paquete1)
+		assert(sucursal10.capacidad == 9) //10 - 1 = 9
 	}				
 
 	it should " poder agregarse mas paquetes" in {
-	    var esperandoSalida = Buffer(new Paquete(sucursal1, sucursal2,1, Normal), new Paquete(sucursal1, sucursal2,3, Normal))
-		sucursal3.notificarPaquetesASalir(esperandoSalida)
-		assert(sucursal3.capacidad == 6)
-		var esperandoEntrada = Buffer(new Paquete(sucursal3, sucursal2,1, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
-		sucursal3.notificarPaquetesAEntrar(esperandoEntrada)
-		assert(sucursal3.capacidad == 0)
+		sucursal10.notificarPaqueteASalir(paquete5)
+		assert(sucursal10.capacidad == 5)
+		sucursal10.notificarPaqueteAEntrar(paquete5)
+		assert(sucursal10.capacidad == 0)
 	}
 	
 	it should "no poder agregarse mas paquetes" in {
+	   sucursal30.notificarPaqueteAEntrar(paquete1)
 	   intercept[SucursalSinCapacidad]{
-	     var esperandoEntrada = Buffer(new Paquete(sucursal3, sucursal2,10, Normal), new Paquete(sucursal3, sucursal2,5, Normal))
-		 sucursal3.notificarPaquetesAEntrar(esperandoEntrada)
+		 sucursal30.notificarPaqueteAEntrar(paqueteConMuchoVolumen)
 	   }
 	}
 	
@@ -91,89 +93,70 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  SistemaExterno.distanciaAerea = 1200.5
 	  SistemaExterno.cantidadPeajes = 4
 	  
-	  assert(SistemaExterno.distanciaTerrestreEntre(sucursal1, sucursal2) == 250.5 )
-	  assert(SistemaExterno.distanciaAereaEntre(sucursal1, sucursal2) == 1200.5)
-	  assert(SistemaExterno.cantidadPeajesEntre(sucursal1, sucursal2) == 4)
+	  assert(SistemaExterno.distanciaTerrestreEntre(sucursal10, sucursal20) == 250.5 )
+	  assert(SistemaExterno.distanciaAereaEntre(sucursal10, sucursal20) == 1200.5)
+	  assert(SistemaExterno.cantidadPeajesEntre(sucursal10, sucursal20) == 4)
 	}
 	
 	"Un transporte" should "tener capacidad" in {
-
-		var paquetesYaAsignados = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-
-		camion.asignarPaquetes(paquetesYaAsignados)
+		camion.asignarPaquete(paquete10)
+		camion.asignarPaquete(paquete20)
 		assert(camion.pedidos.size == 2)
 		assert(camion.capacidad == 15) //45 - 10 - 20 = 15
 
-		var paquetesNuevos = Buffer(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal2,10,Normal))	
-		camion.asignarPaquetes(paquetesNuevos)
+		camion.asignarPaquete(paquete5)
+		camion.asignarPaquete(paquete10)
 		assert(camion.pedidos.size == 4)
 		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 0
 	}
 	
 	it should "no tener capacidad" in {
-
-	  	var paquetesYaAsignados = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-	  	
-		camion.asignarPaquetes(paquetesYaAsignados)
+		camion.asignarPaquete(paquete10)
+		camion.asignarPaquete(paquete20)
 		assert(camion.pedidos.size == 2)
 		assert( camion.capacidad == 15) //45 - 10 - 20 = 15
 
-		var paquetesNuevos = Buffer(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,15,Normal))	
-
 		intercept[TransporteSinCapacidad]{
-		  camion.asignarPaquetes(paquetesNuevos) //excedo la capacidad
+		  camion.asignarPaquete(paqueteConMuchoVolumen) //excedo la capacidad
 		}
+		
 		assert(camion.capacidad == 15)
 		assert(camion.pedidos.size == 2)
 	}
 	
 	it should "no llevar paquetes de destinos diferentes" in {
 
-		var paquetesYaAsignados = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal1,20, Normal))
-	  
+		camion.asignarPaquete(paquete1)
+		
 		intercept[PaquetesDestinoErroneo] {
-			camion.asignarPaquetes(paquetesYaAsignados) //asigno paquetes iniciales con destino distinto
+			camion.asignarPaquete(paqueteInvertido1) //asigno paquetes iniciales con destino distinto
 	    }
-	  
-		assert(camion.pedidos.size == 0)
-		paquetesYaAsignados = Buffer(new Paquete(sucursal1, sucursal2,10, Normal), new Paquete(sucursal1, sucursal2,20, Normal))
-		
-		camion.asignarPaquetes(paquetesYaAsignados)
-		assert(camion.pedidos.size == 2)
-		assert(camion.capacidad == 15) //45 - 10 - 20 = 15
-		
-		var paquetesNuevos = Buffer(new Paquete(sucursal1, sucursal2,5, Normal), new Paquete(sucursal1, sucursal1,10,Normal))	
-		
-		intercept[PaquetesDestinoErroneo] {
-			camion.asignarPaquetes(paquetesNuevos) //asigno mas paquetes pero uno con destino distinto
-		}
-		
-		assert(camion.capacidad == 15)
-		assert(camion.pedidos.size == 2)
+	   
+		assert(camion.pedidos.size == 1)
 
-    paquetesNuevos = Buffer(new Paquete(sucursal1, sucursal2, 5, Normal), new Paquete(sucursal1, sucursal2, 10, Normal))	
-		
-		camion.asignarPaquetes(paquetesNuevos)
-		assert(camion.pedidos.size == 4)
-		assert(camion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 15
+		camion.asignarPaquete(paquete2)
+		assert(camion.pedidos.size == 2)
+		assert(camion.capacidad == 42) //45 - 1 - 2 = 42
 	}
 	
 	it should "llevar tipos de paquetes especificados" in {
 	  intercept[PaqueteTipoInvalido]{
-	    furgoneta.asignarPaquetes(paquetesMixto) //no puede llevar paquetes fragiles ni urgentes
+	    furgoneta.asignarPaquete(paqueteUrgente) //no puede llevar paquetes fragiles ni urgentes
 	  }
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  intercept[PaqueteTipoInvalido]{
-	    furgoneta.asignarPaquetes(paquetesMixto) //aun no puede enviar el paquete fragil
+	    furgoneta.asignarPaquete(paqueteFragil) //aun no puede enviar el paquete fragil
 	  }
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente, Fragil)
-	  furgoneta.asignarPaquetes(paquetesMixto)
+	  furgoneta.asignarPaquete(paqueteUrgente)
+	  furgoneta.asignarPaquete(paqueteFragil)
 	  assert(furgoneta.pedidos.size == 2)
 	}
 	
 	it should "calcular la ganancia de un envio" in {
 
-	  camion.asignarPaquetes(paquetes)
+	  camion.asignarPaquete(paquete10)
+	  camion.asignarPaquete(paquete20)
 
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
@@ -183,7 +166,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	
 	it should "calcular la ganancia de un envio con distintos seguimientos" in {
 
-	  camion.asignarPaquetes(paquetes)
+	  camion.asignarPaquete(paquete10)
+	  camion.asignarPaquete(paquete20)
 	  camion.servicioExtra = Some(SeguimientoSatelital)
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
@@ -196,7 +180,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
 	
 	it should "calcular el costo de un envio dependiendo la infraestructura" in {
-	  camion.asignarPaquetes(paquetes)
+	  camion.asignarPaquete(paquete10)
+	  camion.asignarPaquete(paquete20)
 	  camion.infraestructura = Some(SustanciasPeligrosas)
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
@@ -218,23 +203,24 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	}
 	
 	"Un camion" should "poder llevar paquetes con refrigeracion" in {
-	  camion.asignarPaquetes(paquetesConRefrigeracion)
-	  assert(camion.pedidos.size == 2)
+	  camion.asignarPaquete(paqueteConRefrigeracion)
+	  assert(camion.pedidos.size == 1)
 	}
 	
 	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-	  camion.asignarPaquetes(paquetesUrgentes)
+	  camion.asignarPaquete(paqueteUrgente)
+	  camion.asignarPaquete(paqueteUrgente)
 	  camion.infraestructura = Some(SustanciasPeligrosas)
-	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.distanciaTerrestre = 1
 	  SistemaExterno.cantidadPeajes  = 2
 	  
-	  assert(camion.costoEnvioConAdicionales == 716)//40 + 100*0.5 + 2*12 + 600 + 3*((10+20)/45)
+	  assert(camion.costoEnvioConAdicionales == 764.1333333333333)//40 + 100*0.5 + 2*12 + 600 + 3*((10+20)/45)
 	  // ver si el calculo vol_paquete_urgente/vol_transporte es por paquete urgente o en conjunto
 	}
 	
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
-	  avion.asignarPaquetes(paquetes)
+	  avion.asignarPaquete(paquete1)
 	  SistemaExterno.distanciaAerea = 900.0
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
@@ -249,12 +235,12 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  
 	  SistemaExterno.distanciaAerea = 1100.0
 	  
-	  assert(avion.gananciaEnvio == -1099860)
+	  assert(avion.gananciaEnvio == -1099930.0)
 	}
 	
 	it should "no poder llevar paquetes con refrigeracion" in {
 	  intercept[PaqueteTipoInvalido]{
-	    avion.asignarPaquetes(paquetesConRefrigeracion)
+	    avion.asignarPaquete(paqueteConRefrigeracion)
 	  }
 	}
 	
@@ -262,25 +248,28 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter{
 	  
 	  estadisticas agregarTransporte(camion)
 	  estadisticas agregarTransporte(furgoneta)
-	  
+	  sucursal10.transportes += camion
 	  cliente.generarPaquete(1, Normal)
-	  cliente.pedirEnvio(camion)
+	  cliente.pedirEnvio
+	  
 	  camion.hacerEnvio
 	  
 	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 70) //80 - 10 = 70
 	  
 	  cliente.generarPaquete(3, Normal)
-	  cliente.pedirEnvio(camion)
+	  cliente.pedirEnvio
+	  
 	  camion.hacerEnvio
 	  
 	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 140) // 2*(80 - 10) = 140
 	  
-	  cliente.sucursalOrigen = sucursal3
-	  cliente.sucursalDestino = sucursal1
+	  cliente.sucursalOrigen = sucursal30
+	  sucursal30.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal10
 	  cliente.generarPaquete(2, Normal)
 	  cliente.generarPaquete(3, Normal)
 	  cliente.generarPaquete(4, Normal)
-	  cliente.pedirEnvio(furgoneta)
+	  cliente.pedirEnvio
 	  furgoneta.hacerEnvio
 	  
 	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 350) //5*(80 - 10) = 350

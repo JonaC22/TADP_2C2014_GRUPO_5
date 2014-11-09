@@ -4,25 +4,15 @@ import scala.collection.mutable.Buffer
 
 class Cliente(var sucursalOrigen: Sucursal, var sucursalDestino: Sucursal) {
 
-  var paquetes: Buffer[Paquete] = Buffer()
+  var paquete: Paquete = null
 
   def generarPaquete(volumenPaquete: Int, caracteristicaDePaquete: Caracteristica) {
-    validarSucursales
-    paquetes += new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete)
+    paquete = new Paquete(sucursalOrigen, sucursalDestino, volumenPaquete, caracteristicaDePaquete)
   }
   
-  def validarSucursales = if(paquetes.nonEmpty && !paqueteConSucursalesCorrectas(paquetes.head)) throw new PaquetesConSucursalesDistintas()
-
-  def paqueteConSucursalesCorrectas(paquete : Paquete) : Boolean = {
-    paquete.sucursalOrigen == sucursalOrigen && paquete.sucursalDestino == sucursalDestino
-  }
-  
-  def pedirEnvio(transporte : Transporte) {
-    transporte.asignarPaquetes(paquetes)
-	sucursalDestino.notificarPaquetesAEntrar(paquetes)
-	sucursalOrigen.notificarPaquetesASalir(paquetes)
-	paquetes = Buffer()
+  def pedirEnvio {
+	sucursalDestino.notificarPaqueteAEntrar(paquete)
+	sucursalOrigen.notificarPaqueteASalir(paquete)
+	paquete = null
   }
 }
-
-case class PaquetesConSucursalesDistintas() extends Exception
