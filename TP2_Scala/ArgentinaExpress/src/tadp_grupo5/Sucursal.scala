@@ -9,7 +9,7 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
   
   def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
-  def esCasaCentral(transporte : Transporte) : Double = 0.0
+  def esCasaCentral: Boolean = false
   
   def asignarPaquete(paquete : Paquete) {
     if(transportes.size != 0){
@@ -54,7 +54,7 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
 }
 
 case class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
-  override def esCasaCentral(transporte : Transporte) : Double = transporte.costoAdicionalCamionCasaCentral
+  override def esCasaCentral : Boolean = true
 }
 
 case class SucursalSinCapacidad() extends Exception

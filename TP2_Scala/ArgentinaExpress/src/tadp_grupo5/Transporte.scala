@@ -2,6 +2,7 @@ package tadp_grupo5
 
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
+import java.util.Date
 
 abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
@@ -80,10 +81,10 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
   }
 
   def volumenOcupadoAceptable: Boolean = capacidad >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
-
+  
   def distanciaEntreSucursales: Double
 
-  def costoConCasaCentral: Double = sucursalDestino.esCasaCentral(this)
+  def costoConCasaCentral: Double = if(sucursalDestino.esCasaCentral) costoAdicionalCasaCentral else 0
 
   def costoEnvio: Double = costoBasePaquetes + costoDelViaje
 
@@ -99,7 +100,7 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
 
   def costoBasePaquetes: Double = pedidos.map(_.costo).sum
 
-  def costoAdicionalCamionCasaCentral: Double = 0.0
+  def costoAdicionalCasaCentral: Double = 0.0
 
   def costoServicioExtra: Double = {
     if (!servicioExtra.isEmpty) {
@@ -125,7 +126,7 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
 
   override def costoPeajes: Double = super.costoPeajes * 12
 
-  override def costoAdicionalCamionCasaCentral: Double = costoDelViaje * 0.02
+  override def costoAdicionalCasaCentral: Double = costoDelViaje * 0.02
 
   override def costosAdicionales: Double = super.costosAdicionales + costoConCasaCentral
   
@@ -147,6 +148,12 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
     3 * (volUrgentes / volumen)
     //ver si es por paquete urgente individualmente o en conjunto
   }
+  
+  override def costoEnvio: Double = {
+    if (!volumenOcupadoAceptable && (sucursalDestino.esCasaCentral || sucursalOrigen.esCasaCentral))
+    super.costoEnvio * (1 + capacidad - volumen) else super.costoEnvio
+  }
+  
 }
 
 case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends Transporte(9, 40, 80) {
@@ -154,6 +161,11 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
   override def distanciaEntreSucursales: Double = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
 
   override def costoPeajes: Double = super.costoPeajes * 6
+  
+  override def costoEnvio: Double = {
+    var cantidadUrgentes : Int = pedidos.filter(pedido => pedido.caracteristica == Urgente).size
+    if (!volumenOcupadoAceptable && cantidadUrgentes < 3) super.costoEnvio * 2 else super.costoEnvio
+  }
 }
 
 case class Avion(override var sistemaExterno: CalculadorDistancia) extends Transporte(200, 500, 500) {
@@ -166,10 +178,17 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
 
   override def costoPeajes: Double = 0.0
 
+  override def costoAdicionalCasaCentral: Double = {
+    var fecha: Date = new Date() //tomo la fecha de consulta del costo como si fuera la fecha de envio
+    if(fecha.getDay() > 20) -costoDelViaje * 0.2 else 0
+  }
+  
   override def costosAdicionales: Double = {
-    if (sucursalOrigen.pais != sucursalDestino.pais) super.costosAdicionales + costoDelViaje * 0.1
+    if (sucursalOrigen.pais != sucursalDestino.pais) super.costosAdicionales + costoDelViaje * 0.1 + costoConCasaCentral
     else super.costoDelViaje
   }
+  
+  override def costoEnvio: Double = if (!volumenOcupadoAceptable) super.costoEnvio * 3 else super.costoEnvio
 }
 
 abstract class TransporteException() extends Exception
