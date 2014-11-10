@@ -4,7 +4,7 @@ import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 import java.util.Date
 
-abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
+abstract class Transporte(val volumen: Double, costo: Double, velocidad: Double, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
   var sistemaExterno: CalculadorDistancia
 
@@ -18,16 +18,14 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
 
   def sucursalDestino: Sucursal = pedidos.head.sucursalDestino
 
-  def capacidad: Int = volumen - pedidos.map(_.volumen).sum
+  def capacidad: Double = volumen - pedidos.map(_.volumen).sum
 
   def hacerEnvio {
     agregarEnvioAHistorial
     descargarTransporte
   }
 
-  def agregarEnvioAHistorial {
-    historialEnvios enqueue new Envio(sucursalOrigen, sucursalDestino, pedidos, distanciaEntreSucursales, gananciaEnvio, costoEnvio)
-  }
+  def agregarEnvioAHistorial = historialEnvios enqueue new Envio(sucursalOrigen, sucursalDestino, pedidos, distanciaEntreSucursales, gananciaEnvio, costoEnvioConAdicionales, sistemaExterno.fechaActual)
 
   def descargarTransporte {
     sucursalOrigen.descargarEnvios(pedidos)
@@ -57,11 +55,7 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
     validarDestinoPaquete(nuevoPaquete)
   }
   
-  def validarTipoDePaquete(paquete: Paquete) {
-    if(!puedeLlevarTipoDePaquete(paquete)){
-      throw new PaqueteTipoInvalido()
-    }
-  }
+  def validarTipoDePaquete(paquete: Paquete) = if(!puedeLlevarTipoDePaquete(paquete)) throw new PaqueteTipoInvalido()
   
   def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
     if(paquete.caracteristica != NecesitaRefrigeracion){ //el camion es el unico que puede llevar paquetes que necesitan refrigeracion
@@ -72,19 +66,17 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
     }
   }
 
-  def validarCapacidad(nuevoPaquete: Paquete) {
-    if (capacidad < nuevoPaquete.volumen) throw new TransporteSinCapacidad()
-  }
+  def validarCapacidad(nuevoPaquete: Paquete) = if (capacidad < nuevoPaquete.volumen) throw new TransporteSinCapacidad()
 
   def validarDestinoPaquete(nuevoPaquete: Paquete) {
     if (pedidos.size != 0 && nuevoPaquete.sucursalDestino != sucursalDestino) throw new PaquetesDestinoErroneo()
   }
 
-  def volumenOcupadoAceptable: Boolean = capacidad >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
+  def volumenOcupadoAceptable: Boolean = (volumen - capacidad) >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
   
   def distanciaEntreSucursales: Double
 
-  def costoConCasaCentral: Double = if(sucursalDestino.esCasaCentral) costoAdicionalCasaCentral else 0
+  def costoConCasaCentral: Double = if(sucursalDestino.esCasaCentral) costoAdicionalCasaCentral else 0.0
 
   def costoEnvio: Double = costoBasePaquetes + costoDelViaje
 
@@ -108,17 +100,17 @@ abstract class Transporte(val volumen: Int, costo: Int, velocidad: Int, var serv
     } else 0.0
   }
   
-  def costoInfraestructura : Double = {
+  def costoInfraestructura : Double = { //se asume que si un transporte tiene una infraestructura, los paquetes que lleva son para tal
     if (!infraestructura.isEmpty) {
       infraestructura.get.costoAdicional(distanciaEntreSucursales)
     } else 0.0
   }
   
-  def costoSustanciasUrgentes : Double = {
-    0.0
-  }
+  def costoSustanciasUrgentes : Double = 0.0
   
-  def costosAdicionales: Double = costoPeajes + costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes
+  def costoVolumen : Double = 0.0
+  
+  def costosAdicionales: Double = costoPeajes + costoConCasaCentral + costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes + costoVolumen
 }
 
 case class Camion(override var sistemaExterno: CalculadorDistancia) extends Transporte(45, 100, 60) {
@@ -126,9 +118,7 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
 
   override def costoPeajes: Double = super.costoPeajes * 12
 
-  override def costoAdicionalCasaCentral: Double = costoDelViaje * 0.02
-
-  override def costosAdicionales: Double = super.costosAdicionales + costoConCasaCentral
+  override def costoAdicionalCasaCentral: Double = if(sistemaExterno.fechaActual.getDate() > 21) costoEnvio * 0.02 else 0.0
   
   override def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
     if(paquete.caracteristica == NecesitaRefrigeracion){
@@ -139,20 +129,14 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
     }
   }
   
-  override def costoSustanciasUrgentes : Double = {
-    if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
-  }
-  
+  override def costoSustanciasUrgentes : Double = if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
+
   def costoAdicionalPaquetesUrgentes : Double = {
-    var volUrgentes : Double = pedidos.filter(pedido => pedido.caracteristica == Urgente).map(_.volumen).sum
-    3 * (volUrgentes / volumen)
-    //ver si es por paquete urgente individualmente o en conjunto
+    var volUrgentes : Double = pedidos.filter(_.caracteristica == Urgente).map(_.volumen).sum
+    3 * (volUrgentes/ volumen)
   }
   
-  override def costoEnvio: Double = {
-    if (!volumenOcupadoAceptable && (sucursalDestino.esCasaCentral || sucursalOrigen.esCasaCentral))
-    super.costoEnvio * (1 + capacidad - volumen) else super.costoEnvio
-  }
+  override def costoVolumen: Double = if (!volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral) costoEnvio * ((volumen - capacidad)/ volumen) else 0.0
   
 }
 
@@ -162,9 +146,9 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
 
   override def costoPeajes: Double = super.costoPeajes * 6
   
-  override def costoEnvio: Double = {
-    var cantidadUrgentes : Int = pedidos.filter(pedido => pedido.caracteristica == Urgente).size
-    if (!volumenOcupadoAceptable && cantidadUrgentes < 3) super.costoEnvio * 2 else super.costoEnvio
+  override def costoVolumen: Double = {
+    var cantidadUrgentes : Int = pedidos.filter(_.caracteristica == Urgente).size
+    if (!volumenOcupadoAceptable && cantidadUrgentes < 3) costoEnvio else 0.0
   }
 }
 
@@ -176,19 +160,16 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
     else distancia
   }
 
-  override def costoPeajes: Double = 0.0
+  override def costoPeajes: Double = 0.0 //los aviones no tienen costo de peaje
 
-  override def costoAdicionalCasaCentral: Double = {
-    var fecha: Date = new Date() //tomo la fecha de consulta del costo como si fuera la fecha de envio
-    if(fecha.getDay() > 20) -costoDelViaje * 0.2 else 0
-  }
+  override def costoAdicionalCasaCentral: Double = if(sistemaExterno.fechaActual.getDate() > 20) -costoEnvio * 0.2 else 0.0
   
   override def costosAdicionales: Double = {
-    if (sucursalOrigen.pais != sucursalDestino.pais) super.costosAdicionales + costoDelViaje * 0.1 + costoConCasaCentral
-    else super.costoDelViaje
+    if (sucursalOrigen.pais != sucursalDestino.pais) super.costosAdicionales + costoEnvio* 0.1 //se le suma 10% de impuestos si son envios internacionales
+    else super.costosAdicionales
   }
   
-  override def costoEnvio: Double = if (!volumenOcupadoAceptable) super.costoEnvio * 3 else super.costoEnvio
+  override def costoVolumen: Double = if (!volumenOcupadoAceptable) costoEnvio * 2 else 0.0 //si el volumen ocupado es menor al 20% el costo de envio se contabiliza 2 veces mas
 }
 
 abstract class TransporteException() extends Exception

@@ -18,9 +18,7 @@ class Sucursal (volumenDeposito : Int, val pais : String) {
     }
   }
   
-  def paquetesPendientes : Buffer[Paquete] = {
-	  paquetesEnSalir.filterNot(x => transportes.exists(_.pedidos.contains(x)))
-  }
+  def paquetesPendientes : Buffer[Paquete] = paquetesEnSalir.filterNot(x => transportes.exists(_.pedidos.contains(x)))
   
   def asignarPendientes(){
     var paquetes = paquetesPendientes

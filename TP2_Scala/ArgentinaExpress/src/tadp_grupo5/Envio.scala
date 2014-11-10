@@ -8,5 +8,5 @@ case class Envio(sucursalOrigen: Sucursal,
   paquetesEnviados: Buffer[Paquete],
   distanciaRecorrida: Double,
   gananciaEnvio: Double,
-  costoEnvio: Double,
+  costoEnvioConAdicionales: Double,
   fecha: Date = new Date())
