@@ -32,8 +32,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
     val sucursal30 = new Sucursal(30, "Uruguay")
 	val sucursal1000 = new Sucursal(1000, "Brasil")
     val sucursal3000 = new Sucursal(3000, "Argentina")
-	
-	val sucursales = Buffer(sucursal10, sucursal20, sucursal30)
+	val casaCentral = new CasaCentral(20, "Brasil")
+	val sucursales = Buffer(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal3000, casaCentral)
 	
 	val cliente = new Cliente(sucursal1000, sucursal3000)
 	  
@@ -50,6 +50,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val paquete2 = new Paquete(sucursal10, sucursal20,2, Normal)
 	val paquete5 =new Paquete(sucursal30, sucursal20,5, Normal)
 	val paquete10 = new Paquete(sucursal10, sucursal20,10, Normal)
+	val paquete10CasaCentral = new Paquete(sucursal10, casaCentral,10, Normal)
 	val paquete20 = new Paquete(sucursal10, sucursal20,20, Normal)
 	val paqueteConMuchoVolumen = new Paquete(sucursal10, sucursal20, 9999, Normal)
 	val paqueteUrgenteLiviano = new Paquete(sucursal10, sucursal20,1, Urgente) 
@@ -242,14 +243,21 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(camion.costoEnvioConAdicionales === 642.66 +- 0.01)
 	}
 	
+	it should "calcular costo de ultima semana del mes yendo a casa central" in {
+	  camion.asignarPaquete(paquete10CasaCentral)
+	  SistemaExterno.fechaActual.setDate(24)
+	  
+	  assert(camion.costoEnvio == 10)
+	  assert(camion.sucursalDestino.esCasaCentral)
+	  assert(camion.costoAdicionalCasaCentral == 0.2)
+	  assert(camion.costoEnvioConAdicionales == 10.2)
+	  
+	}
+	
 	it should "calcular costo con adicional por volumen no aceptable" in {
 
 	  camion.asignarPaquete(paquete1)
 	  
-	  assert(camion.sucursalDestino.esCasaCentral == false)
-	  assert(camion.sucursalOrigen.esCasaCentral == false)
-	  assert(camion.volumenOcupadoAceptable == false)
-	  assert(!camion.volumenOcupadoAceptable && !camion.sucursalDestino.esCasaCentral && !camion.sucursalOrigen.esCasaCentral == true)
 	  assert(camion.costoEnvio == 10) 
 	  assert(camion.volumen - camion.capacidad == 1)
 	  assert(camion.volumen == 45)
