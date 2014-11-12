@@ -73,7 +73,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
 	  SistemaExterno.fechaActual.setDate(1)
-	  estadisticas.transportesEnEstudio = Set()
+	  estadisticas.transportesEnEstudio = Buffer()
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -321,5 +321,27 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 350) //5*(80 - 10) = 350
 	  
+	}
+	
+	it should "filtrar envios analizados por una restriccion de fecha" in {
+	  var restriccionFecha = new RestriccionPorFecha()
+	  restriccionFecha.fechaDesde.setDate(9)
+	  restriccionFecha.fechaHasta.setDate(15)
+	  
+	  SistemaExterno.fechaActual.setDate(11)
+	  
+	  estadisticas.restriccionesEnvio += restriccionFecha
+	  estadisticas agregarTransporte(camion)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 70) //80 - 10 = 70
+	  
+	  restriccionFecha.fechaDesde.setDate(12)
+	  
+	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 0)
 	}
 }
