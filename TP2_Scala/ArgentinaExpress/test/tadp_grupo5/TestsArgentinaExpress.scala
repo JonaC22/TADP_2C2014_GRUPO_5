@@ -73,7 +73,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
 	  SistemaExterno.fechaActual.setDate(1)
-	  estadisticas.transportesEnEstudio = Buffer()
+	  estadisticas.sucursalesEnEstudio = Buffer()
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -289,24 +289,24 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  }
 	}
 	
-	"Las estadisticas" should "mostrar ganancia total de todos los transportes en analisis" in {
+	"Las estadisticas" should "mostrar ganancia total de todas las sucursales en analisis" in {
 	  
-	  estadisticas agregarTransporte(camion)
-	  estadisticas agregarTransporte(furgoneta)
+	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 70) //80 - 10 = 70
+	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
 	  
 	  cliente.generarPaquete(30, Normal)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 140) // 2*(80 - 10) = 140
+	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140)) // 2*(80 - 10) = 140
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes += furgoneta
@@ -319,7 +319,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  cliente.pedirEnvio
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 350) //5*(80 - 10) = 350
+	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140))
+	  assert(estadisticas.estadisticaGanancias.get(sucursal3000).contains(210)) //5*(80 - 10) = 350
 	  
 	}
 	
@@ -331,17 +332,17 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.fechaActual.setDate(11)
 	  
 	  estadisticas.restriccionesEnvio += restriccionFecha
-	  estadisticas agregarTransporte(camion)
+	  estadisticas agregarSucursal(sucursal1000)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 70) //80 - 10 = 70
+	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
 	  
 	  restriccionFecha.fechaDesde.setDate(12)
 	  
-	  assert(estadisticas.gananciaTotalDeTodosLosTransportes == 0)
+	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(0))
 	}
 }
