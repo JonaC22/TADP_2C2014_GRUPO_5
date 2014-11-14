@@ -705,4 +705,37 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  restriccionTransporte.tipoTransporte = "Furgoneta"
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 0)
 	}
+	
+	it should "El tiempo (o costo) promedio de cada tipo de transporte" in {
+	  estadisticas agregarSucursal(sucursal1000)
+	  SistemaExterno.distanciaTerrestre = 1000
+	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
+	  
+	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  
+	  cliente.generarPaquete(12, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 70047.5)
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 14.58 +- 0.01)
+	  estadisticas.restriccionesTransporte += restriccionTransporte //quiero filtrar por camiones
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 100075)
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 16.66 +- 0.01)
+	  restriccionTransporte.tipoTransporte = "Furgoneta" //quiero filtrar por furgonetas
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 40020)
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 12.5)
+	}
 }
