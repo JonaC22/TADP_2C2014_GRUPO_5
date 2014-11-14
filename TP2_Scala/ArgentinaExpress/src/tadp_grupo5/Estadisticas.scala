@@ -89,7 +89,7 @@ class Estadisticas {
   def costoPromedioViajes (sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var costoTotal: Double = obtenerEnviosSucursal(sucursal).map(_.costoEnvioConAdicionales).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var costoPromedio = costoTotal / cantidadViajes
+    var costoPromedio = if(cantidadViajes != 0 && costoTotal != 0) costoTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += costoPromedio
     else mapa += (sucursal -> costoPromedio)
   }
@@ -97,7 +97,7 @@ class Estadisticas {
   def gananciaPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var gananciaTotal: Double = obtenerEnviosSucursal(sucursal).map(_.gananciaEnvio).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var gananciaPromedio = gananciaTotal / cantidadViajes
+    var gananciaPromedio = if(cantidadViajes != 0 && gananciaTotal != 0) gananciaTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += gananciaPromedio
     else mapa += (sucursal -> gananciaPromedio)
   }
@@ -105,7 +105,7 @@ class Estadisticas {
   def tiempoPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var tiempoTotal: Double = obtenerTiempos(sucursal).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var tiempoPromedio = tiempoTotal / cantidadViajes
+    var tiempoPromedio = if(cantidadViajes != 0 && tiempoTotal != 0) tiempoTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += tiempoPromedio
     else mapa += (sucursal -> tiempoPromedio)
   }
@@ -151,7 +151,7 @@ class RestriccionPorTipo() extends RestriccionPaquete{
   var tipoPaquete: Caracteristica = Normal
   
   def aplicarRestriccion(paquete : Paquete) : Boolean = {
-    paquete.caracteristica == tipoPaquete
+    paquete.caracteristica != tipoPaquete
   }
 }
 

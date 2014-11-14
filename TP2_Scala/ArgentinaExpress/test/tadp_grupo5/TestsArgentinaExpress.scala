@@ -75,6 +75,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.cantidadPeajes  = 0
 	  SistemaExterno.fechaActual.setDate(1)
 	  estadisticas.sucursalesEnEstudio = Buffer()
+	  estadisticas.restriccionesEnvio = Set()
+	  estadisticas.restriccionesPaquete = Set()
+	  estadisticas.restriccionesTransporte  = Set()
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -547,10 +550,50 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(70)) //80 - 10 = 70
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(10))
 	  
 	  restriccionFecha.fechaDesde.setDate(12)
+
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(0))
+	}
+	
+	it should "restringir por tipo de transporte" in {
+	  estadisticas agregarSucursal(sucursal1000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
 	  
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(0))
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(10))
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(1))
+	  
+	  var restriccionTransporte = new RestriccionPorTransporte()
+	  restriccionTransporte.tipoTransporte = "Camion"
+	  estadisticas.restriccionesTransporte += restriccionTransporte
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(0))
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(0))
+	}
+	
+	it should "restringir por tipo de envio" in {
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  estadisticas agregarSucursal(sucursal1000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, Urgente)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(3))
+	  
+	  var restriccionPaquete = new RestriccionPorTipo()
+	  restriccionPaquete.tipoPaquete = Urgente
+	  estadisticas.restriccionesPaquete += restriccionPaquete
+	  
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(2))
 	}
 }
