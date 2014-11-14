@@ -66,7 +66,7 @@ class Estadisticas {
   }
   
   def obtenerPaquetes (envios : Buffer[Envio]): Buffer[Paquete] = {
-    envios.flatMap(_.paquetesEnviados).filter(x => aplicarRestriccionesPaquetes(x))
+    envios.flatMap(_.paquetesEnviados).filter(x => aplicarRestriccionesPaquete(x))
   }
   
   def obtenerTiempos(sucursal: Sucursal): Buffer[Double] = {
@@ -82,8 +82,8 @@ class Estadisticas {
     restriccionesTransporte.forall(_.aplicarRestriccion(transporte))
   }
   
-  def aplicarRestriccionesPaquetes(paquete : Paquete): Boolean = {
-    restriccionesPaquete.forall(_.aplicarRestriccion(paquete))
+  def aplicarRestriccionesPaquete(paquete : Paquete) : Boolean = {
+    restriccionesPaquete.forall(_.aplicarRestriccion(paquete : Paquete))
   }
   
   def costoPromedioViajes (sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
@@ -129,29 +129,29 @@ class Estadisticas {
   }
 }
 
-trait RestriccionEnvio {
-  def aplicarRestriccion(envio : Envio) : Boolean
-}
-trait RestriccionTransporte {
-  def aplicarRestriccion(transporte : Transporte) : Boolean
-}
 trait RestriccionPaquete {
   def aplicarRestriccion(paquete : Paquete) : Boolean
 }
 
-class RestriccionPorTransporte() extends RestriccionTransporte{
-  var tipoTransporte: String = ""
+trait RestriccionEnvio {
+  def aplicarRestriccion(envio : Envio) : Boolean
+}
+
+trait RestriccionTransporte {
+  def aplicarRestriccion(transporte : Transporte) : Boolean
+}
+
+class RestriccionPorTipoTransporte(var tipoTransporte : String = "") extends RestriccionTransporte{
   
   def aplicarRestriccion(transporte : Transporte) : Boolean = {
-    transporte.getClass.toString() == tipoTransporte
+    transporte.tipoTransporte == tipoTransporte
   }
 }
 
-class RestriccionPorTipo() extends RestriccionPaquete{
-  var tipoPaquete: Caracteristica = Normal
+class RestriccionPorTipoPaquete(var tipoPaquete : Caracteristica) extends RestriccionPaquete{
   
   def aplicarRestriccion(paquete : Paquete) : Boolean = {
-    paquete.caracteristica != tipoPaquete
+    paquete.caracteristica  == tipoPaquete
   }
 }
 

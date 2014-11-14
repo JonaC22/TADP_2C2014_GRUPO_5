@@ -111,6 +111,8 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
   def costoVolumen : Double = 0.0
   
   def costosAdicionales: Double = costoPeajes + costoConCasaCentral + costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes + costoVolumen
+  
+  def tipoTransporte : String = ""
 }
 
 case class Camion(override var sistemaExterno: CalculadorDistancia) extends Transporte(45, 100, 60) {
@@ -138,6 +140,7 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
   
   override def costoVolumen: Double = if (!volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral) costoEnvio * ((volumen - capacidad)/ volumen) else 0.0
   
+  override def tipoTransporte = "Camion"
 }
 
 case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends Transporte(9, 40, 80) {
@@ -150,6 +153,8 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
     var cantidadUrgentes : Int = pedidos.filter(_.caracteristica == Urgente).size
     if (!volumenOcupadoAceptable && cantidadUrgentes < 3) costoEnvio else 0.0
   }
+  
+  override def tipoTransporte = "Furgoneta"
 }
 
 case class Avion(override var sistemaExterno: CalculadorDistancia) extends Transporte(200, 500, 500) {
@@ -170,6 +175,8 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
   }
   
   override def costoVolumen: Double = if (!volumenOcupadoAceptable) costoEnvio * 2 else 0.0 //si el volumen ocupado es menor al 20% el costo de envio se contabiliza 2 veces mas
+
+  override def tipoTransporte = "Avion"
 }
 
 abstract class TransporteException() extends Exception
