@@ -31,9 +31,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val sucursal20 = new Sucursal(20, "Argentina")
     val sucursal30 = new Sucursal(30, "Uruguay")
 	val sucursal1000 = new Sucursal(1000, "Brasil")
+	val sucursal2000 = new Sucursal(2000, "Brasil")
     val sucursal3000 = new Sucursal(3000, "Argentina")
 	val casaCentral = new CasaCentral(20, "Brasil")
 	val sucursales = Buffer(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal3000, casaCentral)
+	
+	val flechaBus = new Compania()
+	val chevallier = new Compania()
+	val companias = Buffer(flechaBus, chevallier)
 	
 	val cliente = new Cliente(sucursal1000, sucursal3000)
 	  
@@ -42,9 +47,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val camion = new Camion(SistemaExterno)
 	val avion = new Avion(SistemaExterno)
 	val furgoneta = new Furgoneta(SistemaExterno)
-	
 	val transportes = Buffer(camion, avion, furgoneta)
-	
+
 	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
 	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
 	val paquete2 = new Paquete(sucursal10, sucursal20,2, Normal)
@@ -52,6 +56,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val paquete10 = new Paquete(sucursal10, sucursal20,10, Normal)
 	val paquete10CasaCentral = new Paquete(sucursal10, casaCentral,10, Normal)
 	val paquete20 = new Paquete(sucursal10, sucursal20,20, Normal)
+	val paquete50nacional = new Paquete(sucursal1000, sucursal2000, 50, Normal)
+	val paquete50internacional = new Paquete(sucursal1000, sucursal3000, 50, Normal)
 	val paqueteConMuchoVolumen = new Paquete(sucursal10, sucursal20, 9999, Normal)
 	val paqueteUrgenteLiviano = new Paquete(sucursal10, sucursal20,1, Urgente) 
 	val paqueteUrgentePesado = new Paquete(sucursal10, sucursal20,20, Urgente) 
@@ -70,6 +76,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursales.foreach(_.paquetesEnEntrar = Buffer())
 	  sucursales.foreach(_.paquetesEnSalir = Buffer())
 	  sucursales.foreach(_.transportes = Buffer())
+	  companias.foreach(_.sucursales = Buffer())
 	  SistemaExterno.distanciaTerrestre  = 0.0
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
@@ -291,6 +298,17 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  intercept[PaqueteTipoInvalido]{
 	    avion.asignarPaquete(paqueteConRefrigeracion)
 	  }
+	}
+	
+	it should "pagar 10% de impuesto si hace viajes internacionales" in {
+	  SistemaExterno.distanciaAerea = 1500
+	  avion.asignarPaquete(paquete50nacional)
+	  assert(avion.costoEnvio == 750010)
+	  assert(avion.costosAdicionales == 0)
+	  avion.hacerEnvio
+	  avion.asignarPaquete(paquete50internacional)
+	  assert(avion.costoEnvio == 750010)
+	  assert(avion.costosAdicionales == 75001)
 	}
 	
 	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
@@ -535,7 +553,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	}
 	
-	it should "filtrar envios analizados por una restriccion de fecha" in {
+	it should "filtrar envios por una restriccion de fecha" in {
 	  var restriccionFecha = new RestriccionPorFecha()
 	  restriccionFecha.fechaDesde.setDate(9)
 	  restriccionFecha.fechaHasta.setDate(15)
@@ -557,7 +575,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(0))
 	}
 	
-	it should "restringir por tipo de envio" in {
+	it should "filtrar envios por una restriccion de tipo de envio" in {
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  estadisticas agregarSucursal(sucursal1000)
 	  sucursal1000.transportes += camion
@@ -588,12 +606,12 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.obtenerTransportes(sucursal1000).size == 1)
-	  
 	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(70)) //80 - 10 = 70
 	  
 	  restriccionTransporte.tipoTransporte = "Furgoneta"
 	  
 	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(0))
 	}
+	
+	
 }
