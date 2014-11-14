@@ -17,6 +17,10 @@ class Estadisticas {
 
   def agregarSucursal(sucursal : Sucursal) = sucursalesEnEstudio += sucursal
   
+  def estadisticasFacturacionTotalTransportes() : Double = {
+    estadisticasFacturacionTotalSucursal.foldLeft(0.0)(_+_._2)
+  }
+  
   def estadisticasPromedioGanancias : Map[Sucursal, Double] = {
     var mapa : Map[Sucursal, Double] = Map()
     sucursalesEnEstudio foreach (x => gananciaPromedioViajes(x, mapa))
@@ -47,7 +51,7 @@ class Estadisticas {
     mapa
   }
   
-  def estadisticasFacturacionTotal: Map[Sucursal, Double] = {
+  def estadisticasFacturacionTotalSucursal: Map[Sucursal, Double] = {
     var mapa : Map[Sucursal, Double] = Map()
     sucursalesEnEstudio foreach (x => facturacionTotal(x, mapa))
     mapa

@@ -523,14 +523,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	 
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(70)) // 80 - 10 = 70
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(70)) // 80 - 10 = 70
 	  
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(160))
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(160))
 	  
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
@@ -548,8 +548,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(160))
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal3000).contains(230)) 
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(160))
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal3000).contains(230)) 
 	  
 	}
 	
@@ -606,11 +606,11 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(70)) //80 - 10 = 70
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(70)) //80 - 10 = 70
 	  
 	  restriccionTransporte.tipoTransporte = "Furgoneta"
 	  
-	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(0))
+	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(0))
 	}
 	
 	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
@@ -659,5 +659,50 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(3))
 	  restriccionTransporte.tipoTransporte = "Avion"
 	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(1))
+	}
+	
+	it should "la facturacion total (en un rango de fechas) para cada tipo de transporte para todo el sistema" in {
+	  estadisticas agregarSucursal(sucursal1000)
+	  SistemaExterno.fechaActual.setDate(18)
+	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
+	  val restriccionFecha = new RestriccionPorFecha()
+	  restriccionFecha.fechaDesde.setDate(15)
+	  restriccionFecha.fechaHasta.setDate(30)
+	  estadisticas.restriccionesEnvio += restriccionFecha 
+	  
+	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  
+	  cliente.generarPaquete(12, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio //el camion hizo los viajes la fecha 18
+	  
+	  SistemaExterno.fechaActual = new Date()
+	  SistemaExterno.fechaActual.setDate(27)
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio //la furgoneta hizo los envios la fecha 27
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 450)
+	  estadisticas.restriccionesTransporte += restriccionTransporte //quiero filtrar por camiones
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  restriccionTransporte.tipoTransporte = "Furgoneta" //quiero filtrar por furgonetas
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 180)
+	  
+	  restriccionFecha.fechaHasta.setDate(25) //tomo las facturaciones hechas hasta el 25, la furgoneta no deberia incluirse
+	  estadisticas.restriccionesTransporte = Set()
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  restriccionTransporte.tipoTransporte = "Camion"
+	  estadisticas.restriccionesTransporte += restriccionTransporte
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  restriccionTransporte.tipoTransporte = "Furgoneta"
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 0)
 	}
 }
