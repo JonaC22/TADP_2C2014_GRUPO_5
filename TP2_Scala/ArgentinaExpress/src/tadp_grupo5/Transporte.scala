@@ -4,7 +4,7 @@ import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 import java.util.Date
 
-abstract class Transporte(val volumen: Double, costo: Double, velocidad: Double, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
+abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
   var sistemaExterno: CalculadorDistancia
 
@@ -19,8 +19,6 @@ abstract class Transporte(val volumen: Double, costo: Double, velocidad: Double,
   def sucursalDestino: Sucursal = pedidos.head.sucursalDestino
 
   def capacidad: Double = volumen - pedidos.map(_.volumen).sum
-  
-  def getVelocidad : Double = velocidad
   
   def hacerEnvio {
     agregarEnvioAHistorial

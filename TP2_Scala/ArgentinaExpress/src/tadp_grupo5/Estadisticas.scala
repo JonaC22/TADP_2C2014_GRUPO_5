@@ -64,7 +64,11 @@ class Estadisticas {
 //  }
   
   def obtenerEnviosPrima (sucursal : Sucursal) : Buffer[Envio] = {
-    sucursal.transportes.filter(x => aplicarRestriccionesTransportes(x)).flatMap(_.historialEnvios).filter(x => aplicarRestriccionesEnvios(x))
+    obtenerTransportes(sucursal).flatMap(_.historialEnvios).filter(x => aplicarRestriccionesEnvios(x))
+  }
+  
+  def obtenerTransportes (sucursal : Sucursal) = {
+    sucursal.transportes.filter(x => aplicarRestriccionesTransportes(x))
   }
   
   def obtenerPaquetes (envios : Buffer[Envio]): Buffer[Paquete] = {
@@ -72,8 +76,8 @@ class Estadisticas {
   }
   
   def obtenerTiempos(sucursal: Sucursal): Buffer[Double] = {
-    sucursal.transportes.filter(x => aplicarRestriccionesTransportes(x)).map(x => x.historialEnvios.filter(x => aplicarRestriccionesEnvios(x))
-        .map(_.distanciaRecorrida).sum / x.getVelocidad)
+    obtenerTransportes(sucursal).map(x => x.historialEnvios.filter(x => aplicarRestriccionesEnvios(x))
+        .map(_.distanciaRecorrida).sum / x.velocidad)
   }
   
   def aplicarRestriccionesEnvios(envio : Envio) : Boolean = {
@@ -125,16 +129,11 @@ class Estadisticas {
   }
   
   def facturacionTotal(sucursal: Sucursal, mapa : Map[Sucursal, Double]){
-    var gananciaTotal: Double = obtenerEnviosPrima(sucursal).map(_.gananciaEnvio).sum
-    var costoTotal: Double = obtenerEnviosPrima(sucursal).map(_.costoEnvioConAdicionales).sum
-    var facturacionTotal: Double = gananciaTotal + costoTotal
+    var gananciaTotal: Double = obtenerEnviosPrima(sucursal).map(_.gananciaEnvio).sum // ganancia = precio paquetes - costos totales paquetes
+    var facturacionTotal: Double = gananciaTotal
     if(mapa.contains(sucursal)) mapa(sucursal) += facturacionTotal
     else mapa += (sucursal -> facturacionTotal)
   }
-  
-  
-  
-
 }
 
 trait RestriccionEnvio {
@@ -153,7 +152,6 @@ class RestriccionPorTransporte() extends RestriccionTransporte{
   def aplicarRestriccion(transporte : Transporte) : Boolean = {
     transporte.getClass.toString() == tipoTransporte
   }
-  
 }
 
 class RestriccionPorTipo() extends RestriccionPaquete{
@@ -162,7 +160,6 @@ class RestriccionPorTipo() extends RestriccionPaquete{
   def aplicarRestriccion(paquete : Paquete) : Boolean = {
     paquete.caracteristica == tipoPaquete
   }
-  
 }
 
 class RestriccionPorFecha() extends RestriccionEnvio{
@@ -172,7 +169,6 @@ class RestriccionPorFecha() extends RestriccionEnvio{
   def aplicarRestriccion(envio : Envio) : Boolean = {
     (envio.fecha after fechaDesde) && (envio.fecha before fechaHasta)
   }
-  
 }  
 
 
