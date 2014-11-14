@@ -613,5 +613,51 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(0))
 	}
 	
-	
+	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
+	  estadisticas agregarSucursal(sucursal1000)
+	  SistemaExterno.distanciaAerea = 1100
+	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
+	  
+	  sucursal1000.transportes += camion
+	  sucursal1000.transportes += furgoneta
+	  sucursal1000.transportes += avion
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  avion.tipoDePaquetesValidos = Buffer(Fragil)
+	  
+	  cliente.generarPaquete(6, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio //el camion hizo dos viajes
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(5, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio //la furgoneta hizo tres viajes
+	  
+	  cliente.generarPaquete(60, Fragil)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(30, Fragil)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(50, Fragil)
+	  cliente.pedirEnvio
+	  avion.hacerEnvio //el avion hizo un envio
+	  
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(6))
+	  estadisticas.restriccionesTransporte += restriccionTransporte //se lo habia inicializado con tipo "Camion"
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(2))
+	  restriccionTransporte.tipoTransporte = "Furgoneta"
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(3))
+	  restriccionTransporte.tipoTransporte = "Avion"
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(1))
+	}
 }
