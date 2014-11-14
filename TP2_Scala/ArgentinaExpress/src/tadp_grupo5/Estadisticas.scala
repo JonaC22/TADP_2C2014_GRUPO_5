@@ -70,7 +70,7 @@ class Estadisticas {
   }
   
   def obtenerTiempos(sucursal: Sucursal): Buffer[Double] = {
-    obtenerTransportes(sucursal).map(x => x.historialEnvios.filter(x => aplicarRestriccionesEnvios(x))
+    obtenerTransportes(sucursal).map(x => obtenerEnviosTransporte(x)
         .map(_.distanciaRecorrida).sum / x.velocidad)
   }
   
@@ -83,13 +83,13 @@ class Estadisticas {
   }
   
   def aplicarRestriccionesPaquete(paquete : Paquete) : Boolean = {
-    restriccionesPaquete.forall(_.aplicarRestriccion(paquete : Paquete))
+    restriccionesPaquete.forall(_.aplicarRestriccion(paquete))
   }
   
   def costoPromedioViajes (sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var costoTotal: Double = obtenerEnviosSucursal(sucursal).map(_.costoEnvioConAdicionales).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var costoPromedio = if(cantidadViajes != 0 && costoTotal != 0) costoTotal / cantidadViajes else 0
+    var costoPromedio = if(cantidadViajes != 0) costoTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += costoPromedio
     else mapa += (sucursal -> costoPromedio)
   }
@@ -97,7 +97,7 @@ class Estadisticas {
   def gananciaPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var gananciaTotal: Double = obtenerEnviosSucursal(sucursal).map(_.gananciaEnvio).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var gananciaPromedio = if(cantidadViajes != 0 && gananciaTotal != 0) gananciaTotal / cantidadViajes else 0
+    var gananciaPromedio = if(cantidadViajes != 0) gananciaTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += gananciaPromedio
     else mapa += (sucursal -> gananciaPromedio)
   }
@@ -105,7 +105,7 @@ class Estadisticas {
   def tiempoPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var tiempoTotal: Double = obtenerTiempos(sucursal).sum
     var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    var tiempoPromedio = if(cantidadViajes != 0 && tiempoTotal != 0) tiempoTotal / cantidadViajes else 0
+    var tiempoPromedio = if(cantidadViajes != 0) tiempoTotal / cantidadViajes else 0
     if(mapa.contains(sucursal)) mapa(sucursal) += tiempoPromedio
     else mapa += (sucursal -> tiempoPromedio)
   }
