@@ -1,7 +1,7 @@
 package tadp_grupo5
 
 import org.scalatest._
-
+import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.Set
 import java.util.Date
@@ -66,6 +66,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  transportes.foreach(_.servicioExtra = None)
 	  transportes.foreach(_.infraestructura = None)
 	  transportes.foreach(_.tipoDePaquetesValidos = Buffer(Normal))
+	  transportes.foreach(_.historialEnvios  = Queue())
 	  sucursales.foreach(_.paquetesEnEntrar = Buffer())
 	  sucursales.foreach(_.paquetesEnSalir = Buffer())
 	  sucursales.foreach(_.transportes = Buffer())
@@ -289,8 +290,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  }
 	}
 	
-	"Las estadisticas" should "mostrar ganancia total de todas las sucursales en analisis" in {
-	  
+	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
 	  estadisticas agregarSucursal(sucursal1000)
 	  estadisticas agregarSucursal(sucursal3000)
 	  sucursal1000.transportes += camion
@@ -299,50 +299,166 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	  
-	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
-	  
-	  cliente.generarPaquete(30, Normal)
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(10))
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(15)) // (10+20)/2
 	  
-	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140)) // 2*(80 - 10) = 140
-
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes += furgoneta
 	  cliente.sucursalDestino = sucursal1000
 	  cliente.generarPaquete(2, Normal)
 	  cliente.pedirEnvio
-	  cliente.generarPaquete(3, Normal)
+	  cliente.generarPaquete(3, Urgente)
 	  cliente.pedirEnvio
-	  cliente.generarPaquete(4, Normal)
-	  cliente.pedirEnvio
+	  
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140))
-	  assert(estadisticas.estadisticaGanancias.get(sucursal3000).contains(210)) //5*(80 - 10) = 350
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
 	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(15)) // (10+20)/2
+	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal3000).contains(20)) // (30+10)/2
 	}
 	
-	it should "filtrar envios analizados por una restriccion de fecha" in {
-	  var restriccionFecha = new RestriccionPorFecha()
-	  restriccionFecha.fechaDesde.setDate(9)
-	  restriccionFecha.fechaHasta.setDate(15)
-	  
-	  SistemaExterno.fechaActual.setDate(11)
-	  
-	  estadisticas.restriccionesEnvio += restriccionFecha
+	it should "mostrar ganancia promedio de todas las sucursales en analisis" in {
 	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasPromedioGanancias.get(sucursal1000).contains(70))
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
 	  
-	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasPromedioGanancias.get(sucursal1000).contains(80)) // (70+90)/2
 	  
-	  restriccionFecha.fechaDesde.setDate(12)
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
 	  
-	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(0))
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioGanancias.get(sucursal1000).contains(80)) // (70+90)/2
+	  assert(estadisticas.estadisticasPromedioGanancias.get(sucursal3000).contains(115)) // ((70+90)+70)/2
+	  
 	}
+	
+	it should "mostrar tiempo promedio de todas las sucursales en analisis" in {
+	  SistemaExterno.distanciaTerrestre = 50
+	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(0.8333333333333333334))
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(1.6666666666666667)) // (70+90)/2
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(80)) // (70+90)/2
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal3000).contains(115)) // ((70+90)+70)/2
+	  
+	}
+	
+	
+//	"Las estadisticas" should "mostrar ganancia total de todas las sucursales en analisis" in {
+//	  
+//	  estadisticas agregarSucursal(sucursal1000)
+//	  estadisticas agregarSucursal(sucursal3000)
+//	  sucursal1000.transportes += camion
+//	  cliente.generarPaquete(10, Normal)
+//	  cliente.pedirEnvio
+//	  
+//	  camion.hacerEnvio
+//	  
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
+//	  
+//	  cliente.generarPaquete(30, Normal)
+//	  cliente.pedirEnvio
+//	  
+//	  camion.hacerEnvio
+//	  
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140)) // 2*(80 - 10) = 140
+//
+//	  cliente.sucursalOrigen = sucursal3000
+//	  sucursal3000.transportes += furgoneta
+//	  cliente.sucursalDestino = sucursal1000
+//	  cliente.generarPaquete(2, Normal)
+//	  cliente.pedirEnvio
+//	  cliente.generarPaquete(3, Normal)
+//	  cliente.pedirEnvio
+//	  cliente.generarPaquete(4, Normal)
+//	  cliente.pedirEnvio
+//	  furgoneta.hacerEnvio
+//	  
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(140))
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal3000).contains(210)) //5*(80 - 10) = 350
+//	  
+//	}
+//	
+//	it should "filtrar envios analizados por una restriccion de fecha" in {
+//	  var restriccionFecha = new RestriccionPorFecha()
+//	  restriccionFecha.fechaDesde.setDate(9)
+//	  restriccionFecha.fechaHasta.setDate(15)
+//	  
+//	  SistemaExterno.fechaActual.setDate(11)
+//	  
+//	  estadisticas.restriccionesEnvio += restriccionFecha
+//	  estadisticas agregarSucursal(sucursal1000)
+//	  sucursal1000.transportes += camion
+//	  cliente.generarPaquete(10, Normal)
+//	  cliente.pedirEnvio
+//	  
+//	  camion.hacerEnvio
+//	  
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(70)) //80 - 10 = 70
+//	  
+//	  restriccionFecha.fechaDesde.setDate(12)
+//	  
+//	  assert(estadisticas.estadisticaGanancias.get(sucursal1000).contains(0))
+//	}
 }

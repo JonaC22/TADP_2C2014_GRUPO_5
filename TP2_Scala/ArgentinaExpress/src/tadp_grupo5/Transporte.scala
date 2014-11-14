@@ -19,7 +19,9 @@ abstract class Transporte(val volumen: Double, costo: Double, velocidad: Double,
   def sucursalDestino: Sucursal = pedidos.head.sucursalDestino
 
   def capacidad: Double = volumen - pedidos.map(_.volumen).sum
-
+  
+  def getVelocidad : Double = velocidad
+  
   def hacerEnvio {
     agregarEnvioAHistorial
     descargarTransporte
