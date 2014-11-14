@@ -376,12 +376,55 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  camion.hacerEnvio
 	 
 	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(0.8333333333333333334))
+	  SistemaExterno.distanciaTerrestre = 100
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
-	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(1.6666666666666667)) // (70+90)/2
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(1.25)) // ((50/60)+(100/60))/2
+	  
+	  SistemaExterno.distanciaTerrestre = 150
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  SistemaExterno.distanciaTerrestre = 100
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(1.25)) // ((50/60)+(100/60))/2
+	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal3000).contains(1.5625)) // ((150/80)+(100/80))/2
+	  
+	}
+	
+	it should "mostrar cantidad de envios de todas las sucursales en analisis" in {
+	  
+	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(1))
+	  
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(2))
 	  
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
@@ -399,11 +442,95 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).contains(80)) // (70+90)/2
-	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal3000).contains(115)) // ((70+90)+70)/2
+	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(2))
+	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal3000).contains(3)) 
 	  
 	}
 	
+	it should "mostrar cantidad de viajes de todas las sucursales en analisis" in {
+	  
+	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(1))
+	  
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(2))
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(2))
+	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal3000).contains(3)) 
+	  
+	}
+	
+	it should "mostrar facturacion total de todas las sucursales en analisis" in {
+	  
+	  estadisticas agregarSucursal(sucursal1000)
+	  estadisticas agregarSucursal(sucursal3000)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(80))
+	  
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(190))
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal1000).contains(190))
+	  assert(estadisticas.estadisticasFacturacionTotal.get(sucursal3000).contains(270)) 
+	  
+	}
 	
 //	"Las estadisticas" should "mostrar ganancia total de todas las sucursales en analisis" in {
 //	  
