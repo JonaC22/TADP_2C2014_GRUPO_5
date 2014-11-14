@@ -35,9 +35,9 @@ class Estadisticas {
     mapa
   }
   
-  def estadisticasCantidadEnvios : Map[Sucursal, Double] = {
+  def estadisticasCantidadPaquetesEnviados : Map[Sucursal, Double] = {
     var mapa : Map[Sucursal, Double] = Map()
-    sucursalesEnEstudio foreach (x => cantidadEnvios(x, mapa))
+    sucursalesEnEstudio foreach (x => cantidadPaquetesEnviados(x, mapa))
     mapa
   }
   
@@ -53,21 +53,15 @@ class Estadisticas {
     mapa
   }
 
-//  def gananciaTotalDeTodosLosTransportes (sucursal : Sucursal, mapa : Map[Sucursal, Double]) {
-//	var ganancia : Double = obtenerEnvios(sucursal).filter(x => aplicarRestriccionesEnvios(x)).map(_.gananciaEnvio).sum
-//    if(mapa.contains(sucursal)) mapa(sucursal) += ganancia
-//    else mapa += (sucursal -> ganancia)
-//  }
-  
-//  def obtenerEnvios (sucursal : Sucursal) : Buffer[Envio] = {
-//    sucursal.transportes flatMap(_.historialEnvios)
-//  }
-  
-  def obtenerEnviosPrima (sucursal : Sucursal) : Buffer[Envio] = {
-    obtenerTransportes(sucursal).flatMap(_.historialEnvios).filter(x => aplicarRestriccionesEnvios(x))
+  def obtenerEnviosTransporte (transporte : Transporte) : Buffer[Envio] = {
+    transporte.historialEnvios.filter(x => aplicarRestriccionesEnvios(x)).toBuffer
   }
   
-  def obtenerTransportes (sucursal : Sucursal) = {
+  def obtenerEnviosSucursal (sucursal : Sucursal) : Buffer[Envio] = {
+    obtenerTransportes(sucursal).flatMap(x => obtenerEnviosTransporte(x))
+  }
+  
+  def obtenerTransportes (sucursal : Sucursal) : Buffer[Transporte] = {
     sucursal.transportes.filter(x => aplicarRestriccionesTransportes(x))
   }
   
@@ -93,16 +87,16 @@ class Estadisticas {
   }
   
   def costoPromedioViajes (sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
-    var costoTotal: Double = obtenerEnviosPrima(sucursal).map(_.costoEnvioConAdicionales).sum
-    var cantidadViajes: Double = obtenerEnviosPrima(sucursal).size
+    var costoTotal: Double = obtenerEnviosSucursal(sucursal).map(_.costoEnvioConAdicionales).sum
+    var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
     var costoPromedio = costoTotal / cantidadViajes
     if(mapa.contains(sucursal)) mapa(sucursal) += costoPromedio
     else mapa += (sucursal -> costoPromedio)
   }
   
   def gananciaPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
-    var gananciaTotal: Double = obtenerEnviosPrima(sucursal).map(_.gananciaEnvio).sum
-    var cantidadViajes: Double = obtenerEnviosPrima(sucursal).size
+    var gananciaTotal: Double = obtenerEnviosSucursal(sucursal).map(_.gananciaEnvio).sum
+    var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
     var gananciaPromedio = gananciaTotal / cantidadViajes
     if(mapa.contains(sucursal)) mapa(sucursal) += gananciaPromedio
     else mapa += (sucursal -> gananciaPromedio)
@@ -110,27 +104,26 @@ class Estadisticas {
   
   def tiempoPromedioViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
     var tiempoTotal: Double = obtenerTiempos(sucursal).sum
-    var cantidadViajes: Double = obtenerEnviosPrima(sucursal).size
+    var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
     var tiempoPromedio = tiempoTotal / cantidadViajes
     if(mapa.contains(sucursal)) mapa(sucursal) += tiempoPromedio
     else mapa += (sucursal -> tiempoPromedio)
   }
   
-  def cantidadEnvios(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
-   var cantidad: Double = obtenerPaquetes(obtenerEnviosPrima(sucursal)).size
+  def cantidadPaquetesEnviados(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
+   var cantidad: Double = obtenerPaquetes(obtenerEnviosSucursal(sucursal)).size
    if(mapa.contains(sucursal)) mapa(sucursal) += cantidad
     else mapa += (sucursal -> cantidad)
   }
   
   def cantidadViajes(sucursal: Sucursal, mapa : Map[Sucursal, Double]) {
-    var cantidad: Double = obtenerEnviosPrima(sucursal).size
+    var cantidad: Double = obtenerEnviosSucursal(sucursal).size
     if(mapa.contains(sucursal)) mapa(sucursal) += cantidad
     else mapa += (sucursal -> cantidad)
   }
   
   def facturacionTotal(sucursal: Sucursal, mapa : Map[Sucursal, Double]){
-    var gananciaTotal: Double = obtenerEnviosPrima(sucursal).map(_.gananciaEnvio).sum // ganancia = precio paquetes - costos totales paquetes
-    var facturacionTotal: Double = gananciaTotal
+    var facturacionTotal: Double = obtenerEnviosSucursal(sucursal).map(_.gananciaEnvio).sum // ganancia = precio paquetes - costos totales paquetes
     if(mapa.contains(sucursal)) mapa(sucursal) += facturacionTotal
     else mapa += (sucursal -> facturacionTotal)
   }

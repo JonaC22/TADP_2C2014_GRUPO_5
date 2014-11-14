@@ -407,7 +407,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	}
 	
-	it should "mostrar cantidad de envios de todas las sucursales en analisis" in {
+	it should "mostrar cantidad de paquetes enviados de todas las sucursales en analisis" in {
 	  
 	  estadisticas agregarSucursal(sucursal1000)
 	  estadisticas agregarSucursal(sucursal3000)
@@ -417,14 +417,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  camion.hacerEnvio
 	 
-	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(1))
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(1))
 	  
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
-	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(2))
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(2))
 	  
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
@@ -442,8 +442,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  furgoneta.hacerEnvio
 	  
-	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal1000).contains(2))
-	  assert(estadisticas.estadisticasCantidadEnvios.get(sucursal3000).contains(3)) 
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(2))
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal3000).contains(3)) 
 	  
 	}
 	
