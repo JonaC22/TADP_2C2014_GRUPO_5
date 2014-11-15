@@ -81,7 +81,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
 	  SistemaExterno.fechaActual.setDate(1)
-	  estadisticas.sucursalesEnEstudio = Buffer()
+	  estadisticas.companiasEnEstudio = Set()
 	  estadisticas.restriccionesEnvio = Set()
 	  estadisticas.restriccionesPaquete = Set()
 	  estadisticas.restriccionesTransporte  = Set()
@@ -312,8 +312,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -349,8 +350,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "mostrar ganancia promedio de todas las sucursales en analisis" in {
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -388,8 +390,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "mostrar tiempo promedio de todas las sucursales en analisis" in {
 	  SistemaExterno.distanciaTerrestre = 50
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -430,8 +433,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "mostrar cantidad de paquetes enviados de todas las sucursales en analisis" in {
 	  
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -470,8 +474,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "mostrar cantidad de viajes de todas las sucursales en analisis" in {
 	  
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -515,8 +520,9 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "mostrar facturacion total de todas las sucursales en analisis" in {
 	  
-	  estadisticas agregarSucursal(sucursal1000)
-	  estadisticas agregarSucursal(sucursal3000)
+	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -561,7 +567,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.fechaActual.setDate(11)
 	  
 	  estadisticas.restriccionesEnvio += restriccionFecha
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -577,7 +584,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "filtrar envios por una restriccion de tipo de envio" in {
 	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -599,7 +607,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  var restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
 	  
 	  estadisticas.restriccionesTransporte += restriccionTransporte
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes += camion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -614,7 +623,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  SistemaExterno.distanciaAerea = 1100
 	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
 	  
@@ -662,7 +672,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "la facturacion total (en un rango de fechas) para cada tipo de transporte para todo el sistema" in {
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  SistemaExterno.fechaActual.setDate(18)
 	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
 	  val restriccionFecha = new RestriccionPorFecha()
@@ -707,7 +718,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "El tiempo (o costo) promedio de cada tipo de transporte" in {
-	  estadisticas agregarSucursal(sucursal1000)
+	  flechaBus.sucursales += sucursal1000
+	  estadisticas agregarCompania(flechaBus)
 	  SistemaExterno.distanciaTerrestre = 1000
 	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
 	  
@@ -737,5 +749,40 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  restriccionTransporte.tipoTransporte = "Furgoneta" //quiero filtrar por furgonetas
 	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 40020)
 	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 12.5)
+	}
+	
+	it should "La facturacion total de cada compania por cada sucursal" in {
+	  
+	  flechaBus.sucursales += sucursal1000
+	  chevallier.sucursales += sucursal3000
+	  estadisticas agregarCompania(flechaBus)
+	  estadisticas agregarCompania(chevallier)
+	  sucursal1000.transportes += camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal1000).contains(70)) // 80 - 10 = 70
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes += furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal1000).contains(70))
+	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(chevallier).get.get(sucursal3000).contains(230)) 
+	  
 	}
 }

@@ -7,15 +7,30 @@ import scala.collection.mutable.Map
 
 class Estadisticas {
   
-  var sucursalesEnEstudio : Buffer[Sucursal] = Buffer()
+  var companiasEnEstudio : Set[Compania] = Set()
   
   var restriccionesEnvio : Set[RestriccionEnvio] = Set()
   
   var restriccionesTransporte : Set[RestriccionTransporte] = Set()
   
   var restriccionesPaquete : Set[RestriccionPaquete] = Set()
+  
+  def sucursalesEnEstudio : Buffer[Sucursal] = {
+    companiasEnEstudio.flatMap(_.sucursales).toSet[Sucursal].toBuffer
+  }
+  
+  def estadisticasFacturacionTotalCompania : Map[Compania, Map[Sucursal, Double]] = {
+    var mapa : Map[Compania, Map[Sucursal, Double]] = Map()
+    companiasEnEstudio foreach (x => facturacionTotalCompania(x, mapa))
+    mapa
+  }
+  
+  def facturacionTotalCompania(compania : Compania, mapa : Map[Compania, Map[Sucursal, Double]]){
+    var mapaFacturacion = estadisticasFacturacionTotalSucursal.filter(x => compania.sucursales.contains(x._1))
+    mapa += (compania -> mapaFacturacion)
+  }
 
-  def agregarSucursal(sucursal : Sucursal) = sucursalesEnEstudio += sucursal
+  def agregarCompania(compania : Compania) = companiasEnEstudio += compania
   
   def estadisticasFacturacionTotalTransportes() : Double = {
     estadisticasFacturacionTotalSucursal.foldLeft(0.0)(_+_._2)
