@@ -34,7 +34,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val sucursal2000 = new Sucursal(2000, "Brasil")
     val sucursal3000 = new Sucursal(3000, "Argentina")
 	val casaCentral = new CasaCentral(20, "Brasil")
-	val sucursales = Buffer(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal3000, casaCentral)
+	val sucursales = Buffer(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal2000, sucursal3000, casaCentral)
 	
 	val flechaBus = new Compania()
 	val chevallier = new Compania()
@@ -45,9 +45,10 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val estadisticas = new Estadisticas()
 	
 	val camion = new Camion(SistemaExterno)
+	val otroCamion = new Camion(SistemaExterno)
 	val avion = new Avion(SistemaExterno)
 	val furgoneta = new Furgoneta(SistemaExterno)
-	val transportes = Buffer(camion, avion, furgoneta)
+	val transportes = Buffer(camion, otroCamion, avion, furgoneta)
 
 	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
 	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
@@ -754,6 +755,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	it should "La facturacion total de cada compania por cada sucursal" in {
 	  
 	  flechaBus.sucursales += sucursal1000
+	  flechaBus.sucursales += sucursal2000
 	  chevallier.sucursales += sucursal3000
 	  estadisticas agregarCompania(flechaBus)
 	  estadisticas agregarCompania(chevallier)
@@ -764,6 +766,16 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  camion.hacerEnvio
 	 
 	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal1000).contains(70)) // 80 - 10 = 70
+	  
+	  sucursal2000.transportes += otroCamion
+	  cliente.sucursalOrigen = sucursal2000
+	  cliente.generarPaquete(10, Normal)
+	  cliente.sucursalDestino = sucursal3000
+	  cliente.pedirEnvio
+	  
+	  otroCamion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal2000).contains(70))
 	  
 	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
@@ -782,6 +794,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  furgoneta.hacerEnvio
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal1000).contains(70))
+	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(flechaBus).get.get(sucursal2000).contains(70))
 	  assert(estadisticas.estadisticasFacturacionTotalCompania.get(chevallier).get.get(sucursal3000).contains(230)) 
 	  
 	}
