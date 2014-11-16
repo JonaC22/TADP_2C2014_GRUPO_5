@@ -141,7 +141,7 @@ trait RestriccionPaquete {
 }
 
 trait RestriccionEnvio {
-  def aplicarRestriccion(envio : Envio) : Boolean
+  val aplicarRestriccion: Envio => Boolean
 }
 
 trait RestriccionTransporte {
@@ -159,7 +159,7 @@ class RestriccionPorTipoPaquete(var tipoPaquete : Caracteristica) extends Restri
 class RestriccionPorFecha() extends RestriccionEnvio{
   var fechaDesde : Date = new Date()
   var fechaHasta : Date = new Date()
-  def aplicarRestriccion(envio : Envio) : Boolean = envio.fecha.after(fechaDesde) && envio.fecha.before(fechaHasta)
+  val aplicarRestriccion : Envio => Boolean = envio => envio.fecha.after(fechaDesde) && envio.fecha.before(fechaHasta)
 }  
 
 

@@ -515,70 +515,70 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,2))
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal3000,3)) 
 	}
-//	
-//	it should "mostrar facturacion total de todas las sucursales en analisis" in {
-//	  
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  flechaBus.agregarSucursal(sucursal3000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	 
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(70)) // 80 - 10 = 70
-//	  
-//	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-//	  cliente.generarPaquete(30, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(160))
-//	  
-//	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-//	  cliente.sucursalOrigen = sucursal3000
-//	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
-//	  cliente.sucursalDestino = sucursal1000
-//	  cliente.generarPaquete(2, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  cliente.generarPaquete(4, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(160))
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal3000).contains(230)) 
-//	  
-//	}
-//	
-//	it should "filtrar envios por una restriccion de fecha" in {
-//	  var restriccionFecha = new RestriccionPorFecha()
-//	  restriccionFecha.fechaDesde.setDate(9)
-//	  restriccionFecha.fechaHasta.setDate(15)
-//	  
-//	  SistemaExterno.fechaActual.setDate(11)
-//	  
-//	  estadisticas.restriccionesEnvio += restriccionFecha
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(10))
-//	  
-//	  restriccionFecha.fechaDesde.setDate(12)
-//
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(0))
-//	}
+	
+	it should "mostrar facturacion total de todas las sucursales en analisis" in {
+	  
+	  flechaBus.agregarSucursal(sucursal1000)
+	  flechaBus.agregarSucursal(sucursal3000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	 
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,70)) // 80 - 10 = 70
+	  
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,160))
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,160))
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal3000,230)) 
+	  
+	}
+	
+	it should "filtrar envios por una restriccion de fecha" in {
+	  var restriccionFecha = new RestriccionPorFecha()
+	  restriccionFecha.fechaDesde.setDate(9)
+	  restriccionFecha.fechaHasta.setDate(15)
+	  
+	  SistemaExterno.fechaActual.setDate(11)
+	  
+	  estadisticas.restriccionesEnvio += restriccionFecha
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,10))
+	  
+	  restriccionFecha.fechaDesde.setDate(12)
+
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,0))
+	}
 //	
 //	it should "filtrar envios por una restriccion de tipo de envio" in {
 //	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
