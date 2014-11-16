@@ -77,7 +77,7 @@ class Estadisticas {
       } yield envio.costoEnvioConAdicionales).sum
   }
   
-  val cantidadDeViajesSucursal : Sucursal => Double = obtenerEnviosSucursal(_).size
+  val cantidadViajesSucursal : Sucursal => Double = obtenerEnviosSucursal(_).size
   
   val cantidadPaquetesEnviados : Sucursal => Double = obtenerPaquetes(_).size
   
@@ -90,13 +90,8 @@ class Estadisticas {
   
   val promedioViaje : (Sucursal => Double) => Sucursal => Double = {
     funcionValorTotal => sucursal => 
-      if(cantidadDeViajesSucursal(sucursal) != 0.0) funcionValorTotal(sucursal) / cantidadDeViajesSucursal(sucursal) else 0.0  
+      if(cantidadViajesSucursal(sucursal) != 0.0) funcionValorTotal(sucursal) / cantidadViajesSucursal(sucursal) else 0.0  
   }
-  
-//  
-//  def estadisticasCantidadViajes : tuplaSucursalValue = {
-//    sucursalesEnEstudio foreach (x => cantidadViajes(x))
-//  }
   
   def agregarCompania(compania : Compania) = companiasEnEstudio = companiasEnEstudio :+ compania
   
@@ -115,6 +110,8 @@ class Estadisticas {
   def estadisticasFacturacionTotalSucursales : List[tuplaSucursalValue] = estadisticasSucursales(facturacionTotalSucursal)
   
   def estadisticasCantidadPaquetesEnviados : List[tuplaSucursalValue] = estadisticasSucursales(cantidadPaquetesEnviados)
+  
+  def estadisticasCantidadViajes : List[tuplaSucursalValue] = estadisticasSucursales(cantidadViajesSucursal)
   
   def estadisticasPromedioCostos : List[tuplaSucursalValue] = estadisticasPromedioSucursales(costosEnviosSucursal)
   
@@ -137,14 +134,6 @@ class Estadisticas {
   def aplicarRestriccionesPaquete(paquete : Paquete) : Boolean = {
     restriccionesPaquete.forall(_.aplicarRestriccion(paquete))
   }
-  
-//  
-//  def cantidadPaquetesEnviados(tupla : tuplaSucursalValue) {
-//   var cantidad: Double = obtenerPaquetes(obtenerEnviosSucursal(sucursal)).size
-//   if(mapa.contains(sucursal)) mapa(sucursal) += cantidad
-//    else mapa += (sucursal -> cantidad)
-//  }
-//  
 }
 
 trait RestriccionPaquete {
