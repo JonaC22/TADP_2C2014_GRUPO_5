@@ -18,13 +18,22 @@ class Estadisticas {
     companiasEnEstudio.map(_.sucursales).flatten
   }
   
+  val obtenerEnviosSucursal : Sucursal => List[Envio] = {
+    { sucursal =>
+    	for {
+    		transporte <- obtenerTransportes(sucursal)
+    		envio <- obtenerEnviosTransporte(transporte)
+    	} yield envio      
+    }
+  }
+  
   val estadisticasCompania : (Sucursal => Double) => Compania => List[tuplaCompaniaSucursalValue] = {
      f => compania => for {
        sucursal <- compania.sucursales
      } yield (compania, estadisticasSucursal(f)(sucursal))
   }
   
-   val estadisticasSucursal : (Sucursal => Double) => Sucursal => tuplaSucursalValue = {
+  val estadisticasSucursal : (Sucursal => Double) => Sucursal => tuplaSucursalValue = {
 	 f => sucursal => (sucursal, f(sucursal))
   }
   
@@ -36,32 +45,23 @@ class Estadisticas {
     }
   }
   
-  val estadisticasFacturacionTotalSucursal : Sucursal => tuplaSucursalValue = {
-	sucursal => estadisticasSucursal(facturacionTotalSucursal)(sucursal)
+  val costosEnviosSucursal : Sucursal => Double = {
+    sucursal => (for {
+      envio <- obtenerEnviosSucursal(sucursal)
+      } yield envio.costoEnvioConAdicionales).sum
   }
   
-  val estadisticasFacturacionTotalCompania : Compania => List[tuplaCompaniaSucursalValue] = {
-    estadisticasCompania(facturacionTotalSucursal)
+  val cantidadDeViajesSucursal : Sucursal => Double = {
+    obtenerEnviosSucursal(_).size
   }
   
-  def estadisticasFacturacionTotalCompanias : List[tuplaCompaniaSucursalValue] = {
-    (for {
-      compania <- companiasEnEstudio 
-    } yield estadisticasCompania(facturacionTotalSucursal)(compania)).flatten
+  val promedioViaje : (Sucursal => Double) => Sucursal => Double = {
+    funcionValorTotal => sucursal => 
+      if(cantidadDeViajesSucursal(sucursal) != 0.0) funcionValorTotal(sucursal) / cantidadDeViajesSucursal(sucursal) else 0.0  
   }
-
-  def agregarCompania(compania : Compania) = companiasEnEstudio = companiasEnEstudio :+ compania
-  
-//  def estadisticasFacturacionTotalTransportes() : Double = {
-//    estadisticasFacturacionTotalSucursal.foldLeft(0.0)(_+_._2)
-//  }
   
 //  def estadisticasPromedioGanancias : tuplaSucursalValue = {
 //    sucursalesEnEstudio foreach (x => gananciaPromedioViajes(x))
-//  }
-//  
-//  def estadisticasPromedioCostos : tuplaSucursalValue = {
-//    sucursalesEnEstudio foreach (x => costoPromedioViajes(x))
 //  }
 //  
 //  def estadisticasPromedioTiempos : tuplaSucursalValue = {
@@ -76,23 +76,30 @@ class Estadisticas {
 //    sucursalesEnEstudio foreach (x => cantidadViajes(x))
 //  }
   
+  def agregarCompania(compania : Compania) = companiasEnEstudio = companiasEnEstudio :+ compania
+  
+  def estadisticasFacturacionTotalCompanias : List[tuplaCompaniaSucursalValue] = {
+    (for {
+      compania <- companiasEnEstudio 
+    } yield estadisticasCompania(facturacionTotalSucursal)(compania)).flatten
+  }
+  
+  def estadisticasFacturacionTotalTransportes() : Double = {
+    estadisticasFacturacionTotalSucursales.foldLeft(0.0)(_+_._2)
+  }
+  
+  def estadisticasPromedioCostos : List[tuplaSucursalValue] = {
+    for {sucursal <- sucursalesEnEstudio} yield (estadisticasSucursal(promedioViaje(costosEnviosSucursal)))(sucursal)
+  }
+  
   def estadisticasFacturacionTotalSucursales : List[tuplaSucursalValue] = {
-    for {sucursal <- sucursalesEnEstudio} yield estadisticasFacturacionTotalSucursal(sucursal)
+    for {sucursal <- sucursalesEnEstudio} yield estadisticasSucursal(facturacionTotalSucursal)(sucursal)
   }
 
   def obtenerEnviosTransporte (transporte : Transporte) : List[Envio] = {
     for {
       envio <- transporte.historialEnvios if aplicarRestriccionesEnvios(envio)
     } yield envio
-  }
-  
-  val obtenerEnviosSucursal : Sucursal => List[Envio] = {
-    { sucursal =>
-    	for {
-    		transporte <- obtenerTransportes(sucursal)
-    		envio <- obtenerEnviosTransporte(transporte)
-    	} yield envio      
-    }
   }
   
   def obtenerTransportes (sucursal : Sucursal) : List[Transporte] = {
@@ -106,8 +113,7 @@ class Estadisticas {
   }
   
   def obtenerTiempos(sucursal: Sucursal): List[Double] = {
-    obtenerTransportes(sucursal).map(x => obtenerEnviosTransporte(x)
-        .map(_.distanciaRecorrida).sum / x.velocidad)
+    obtenerTransportes(sucursal).map(x => obtenerEnviosTransporte(x).map(_.distanciaRecorrida).sum / x.velocidad)
   }
   
   def aplicarRestriccionesEnvios(envio : Envio) : Boolean = {
@@ -120,15 +126,6 @@ class Estadisticas {
   
   def aplicarRestriccionesPaquete(paquete : Paquete) : Boolean = {
     restriccionesPaquete.forall(_.aplicarRestriccion(paquete))
-  }
-  
-  val costoPromedioViajes : Sucursal => tuplaSucursalValue = {
-    { sucursal =>
-    	var costoTotal: Double = obtenerEnviosSucursal(sucursal).map(_.costoEnvioConAdicionales).sum
-    	var cantidadViajes: Double = obtenerEnviosSucursal(sucursal).size
-    	var costoPromedio = if(cantidadViajes != 0) costoTotal / cantidadViajes else 0
-    	(sucursal, costoPromedio)    
-    }
   }
   
 //  def gananciaPromedioViajes(tupla : tuplaSucursalValue) {
@@ -174,26 +171,17 @@ trait RestriccionTransporte {
 }
 
 class RestriccionPorTipoTransporte(var tipoTransporte : String = "") extends RestriccionTransporte{
-  
-  def aplicarRestriccion(transporte : Transporte) : Boolean = {
-    transporte.tipoTransporte == tipoTransporte
-  }
+  def aplicarRestriccion(transporte : Transporte) : Boolean = transporte.tipoTransporte == tipoTransporte
 }
 
 class RestriccionPorTipoPaquete(var tipoPaquete : Caracteristica) extends RestriccionPaquete{
-  
-  def aplicarRestriccion(paquete : Paquete) : Boolean = {
-    paquete.caracteristica  == tipoPaquete
-  }
+  def aplicarRestriccion(paquete : Paquete) : Boolean = paquete.caracteristica  == tipoPaquete
 }
 
 class RestriccionPorFecha() extends RestriccionEnvio{
   var fechaDesde : Date = new Date()
   var fechaHasta : Date = new Date()
-  
-  def aplicarRestriccion(envio : Envio) : Boolean = {
-    (envio.fecha after fechaDesde) && (envio.fecha before fechaHasta)
-  }
+  def aplicarRestriccion(envio : Envio) : Boolean = envio.fecha.after(fechaDesde) && envio.fecha.before(fechaHasta)
 }  
 
 

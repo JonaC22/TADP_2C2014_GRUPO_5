@@ -310,45 +310,45 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(avion.costoEnvio == 750010)
 	  assert(avion.costosAdicionales == 75001)
 	}
-//	
-//	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  flechaBus.agregarSucursal(sucursal3000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(10))
-//	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-//	  cliente.generarPaquete(30, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(15)) // (10+20)/2
-//	  
-//	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-//	  cliente.sucursalOrigen = sucursal3000
-//	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
-//	  cliente.sucursalDestino = sucursal1000
-//	  cliente.generarPaquete(2, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  cliente.generarPaquete(4, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).contains(15)) // (10+20)/2
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal3000).contains(20)) // (30+10)/2
-//	}
-//	
+	
+	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
+	  flechaBus.agregarSucursal(sucursal1000)
+	  flechaBus.agregarSucursal(sucursal3000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,10))
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,15)) // (10+20)/2
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,15)) // (10+20)/2
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal3000,20)) // (30+10)/2
+	}
+	
 //	it should "mostrar ganancia promedio de todas las sucursales en analisis" in {
 //	  flechaBus.agregarSucursal(sucursal1000)
 //	  flechaBus.agregarSucursal(sucursal3000)
