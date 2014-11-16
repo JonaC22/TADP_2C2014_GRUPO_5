@@ -1,6 +1,5 @@
 package tadp_grupo5
 
-import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
 import java.util.Date
 
@@ -10,7 +9,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
 
   var pedidos: Buffer[Paquete] = Buffer()
 
-  var historialEnvios: Queue[Envio] = Queue()
+  var historialEnvios: List[Envio] = List()
   
   var tipoDePaquetesValidos : Buffer[Caracteristica] = Buffer(Normal)
 
@@ -25,7 +24,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
     descargarTransporte
   }
 
-  def agregarEnvioAHistorial = historialEnvios enqueue new Envio(sucursalOrigen, sucursalDestino, pedidos, distanciaEntreSucursales, gananciaEnvio, costoEnvioConAdicionales, sistemaExterno.fechaActual)
+  def agregarEnvioAHistorial = historialEnvios = historialEnvios :+ new Envio(sucursalOrigen, sucursalDestino, pedidos, distanciaEntreSucursales, gananciaEnvio, costoEnvioConAdicionales, sistemaExterno.fechaActual)
 
   def descargarTransporte {
     sucursalOrigen.descargarEnvios(pedidos)

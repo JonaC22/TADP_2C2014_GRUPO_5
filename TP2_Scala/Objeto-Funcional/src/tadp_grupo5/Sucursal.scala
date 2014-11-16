@@ -5,7 +5,7 @@ import scala.collection.mutable.Buffer
 class Sucursal (volumenDeposito : Int, val pais : String) {
   var paquetesEnSalir : Buffer[Paquete] = Buffer()
   var paquetesEnEntrar : Buffer[Paquete] = Buffer()
-  var transportes : Buffer[Transporte] = Buffer()
+  var transportes : List[Transporte] = List()
   
   def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
