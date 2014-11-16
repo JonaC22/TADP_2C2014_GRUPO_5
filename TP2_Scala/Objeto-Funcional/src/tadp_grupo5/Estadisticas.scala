@@ -14,14 +14,14 @@ class Estadisticas {
   var restriccionesTransporte : Set[RestriccionTransporte] = Set()
   var restriccionesPaquete : Set[RestriccionPaquete] = Set()
   
-  def obtenerEnviosTransporte : Transporte => List[Envio] = {
+  val obtenerEnviosTransporte : Transporte => List[Envio] = {
     transporte =>
     for {
       envio <- transporte.historialEnvios if aplicarRestriccionesEnvios(envio)
     } yield envio
   }
   
-  def obtenerTransportes : Sucursal => List[Transporte] = {
+  val obtenerTransportes : Sucursal => List[Transporte] = {
     sucursal =>
     for {
       transporte <- sucursal.transportes if aplicarRestriccionesTransportes(transporte)
@@ -29,12 +29,19 @@ class Estadisticas {
   }
   
   val obtenerEnviosSucursal : Sucursal => List[Envio] = {
-    { sucursal =>
-    	for {
-    		transporte <- obtenerTransportes(sucursal)
-    		envio <- obtenerEnviosTransporte(transporte)
-    	} yield envio      
-    }
+    sucursal =>
+    for {
+    	transporte <- obtenerTransportes(sucursal)
+    	envio <- obtenerEnviosTransporte(transporte)
+    } yield envio      
+  }
+  
+  val obtenerPaquetes : Sucursal => List[Paquete] = {
+    sucursal =>
+    for {
+      envio <- obtenerEnviosSucursal(sucursal)
+      paquete <- envio.paquetesEnviados if aplicarRestriccionesPaquete(paquete)
+    } yield paquete
   }
   
   val estadisticasCompania : (Sucursal => Double) => Compania => List[tuplaCompaniaSucursalValue] = {
@@ -70,9 +77,9 @@ class Estadisticas {
       } yield envio.costoEnvioConAdicionales).sum
   }
   
-  val cantidadDeViajesSucursal : Sucursal => Double = {
-    obtenerEnviosSucursal(_).size
-  }
+  val cantidadDeViajesSucursal : Sucursal => Double = obtenerEnviosSucursal(_).size
+  
+  val cantidadPaquetesEnviados : Sucursal => Double = obtenerPaquetes(_).size
   
   val tiempoTotalViajesSucursal : Sucursal => Double = {
     sucursal => (for {
@@ -85,10 +92,7 @@ class Estadisticas {
     funcionValorTotal => sucursal => 
       if(cantidadDeViajesSucursal(sucursal) != 0.0) funcionValorTotal(sucursal) / cantidadDeViajesSucursal(sucursal) else 0.0  
   }
-//  
-//  def estadisticasCantidadPaquetesEnviados : tuplaSucursalValue = {
-//    sucursalesEnEstudio foreach (x => cantidadPaquetesEnviados(x))
-//  }
+  
 //  
 //  def estadisticasCantidadViajes : tuplaSucursalValue = {
 //    sucursalesEnEstudio foreach (x => cantidadViajes(x))
@@ -109,6 +113,8 @@ class Estadisticas {
   }
   
   def estadisticasFacturacionTotalSucursales : List[tuplaSucursalValue] = estadisticasSucursales(facturacionTotalSucursal)
+  
+  def estadisticasCantidadPaquetesEnviados : List[tuplaSucursalValue] = estadisticasSucursales(cantidadPaquetesEnviados)
   
   def estadisticasPromedioCostos : List[tuplaSucursalValue] = estadisticasPromedioSucursales(costosEnviosSucursal)
   

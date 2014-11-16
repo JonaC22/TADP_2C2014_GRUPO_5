@@ -5,7 +5,7 @@ import scala.collection.mutable.Buffer
 
 case class Envio(sucursalOrigen: Sucursal,
   sucursalDestino: Sucursal,
-  paquetesEnviados: Buffer[Paquete],
+  paquetesEnviados: List[Paquete],
   distanciaRecorrida: Double,
   gananciaEnvio: Double,
   costoEnvioConAdicionales: Double,
