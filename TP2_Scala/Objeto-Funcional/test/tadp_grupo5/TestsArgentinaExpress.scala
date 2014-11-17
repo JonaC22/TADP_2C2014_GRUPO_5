@@ -558,7 +558,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "filtrar envios por una restriccion de fecha" in {
-	  var restriccionFecha = new RestriccionPorFecha()
+	  var restriccionFecha = RestriccionPorFecha()
 	  restriccionFecha.fechaDesde.setDate(9)
 	  restriccionFecha.fechaHasta.setDate(15)
 	  
@@ -618,136 +618,132 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,0))
 	}
-//	
-//	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  SistemaExterno.distanciaAerea = 1100
-//	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
-//	  
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  sucursal1000.transportes = sucursal1000.transportes :+ furgoneta
-//	  sucursal1000.transportes = sucursal1000.transportes :+ avion
-//	  
-//	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
-//	  avion.tipoDePaquetesValidos = Buffer(Fragil)
-//	  
-//	  cliente.generarPaquete(6, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(10, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio
-//	  cliente.generarPaquete(10, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio //el camion hizo dos viajes
-//	  
-//	  cliente.generarPaquete(6, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio
-//	  cliente.generarPaquete(5, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio //la furgoneta hizo tres viajes
-//	  
-//	  cliente.generarPaquete(60, Fragil)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(30, Fragil)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(50, Fragil)
-//	  cliente.pedirEnvio
-//	  avion.hacerEnvio //el avion hizo un envio
-//	  
-//	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(6))
-//	  estadisticas.restriccionesTransporte += restriccionTransporte //se lo habia inicializado con tipo "Camion"
-//	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(2))
-//	  restriccionTransporte.tipoTransporte = "Furgoneta"
-//	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(3))
-//	  restriccionTransporte.tipoTransporte = "Avion"
-//	  assert(estadisticas.estadisticasCantidadViajes.get(sucursal1000).contains(1))
-//	}
-//	
-//	it should "la facturacion total (en un rango de fechas) para cada tipo de transporte para todo el sistema" in {
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  SistemaExterno.fechaActual.setDate(18)
-//	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
-//	  val restriccionFecha = new RestriccionPorFecha()
-//	  restriccionFecha.fechaDesde.setDate(15)
-//	  restriccionFecha.fechaHasta.setDate(30)
-//	  estadisticas.restriccionesEnvio += restriccionFecha 
-//	  
-//	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
-//	  
-//	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
-//	  
-//	  cliente.generarPaquete(12, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(10, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio //el camion hizo los viajes la fecha 18
-//	  
-//	  SistemaExterno.fechaActual = new Date()
-//	  SistemaExterno.fechaActual.setDate(27)
-//	  
-//	  cliente.generarPaquete(6, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio //la furgoneta hizo los envios la fecha 27
-//	  
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 450)
-//	  estadisticas.restriccionesTransporte += restriccionTransporte //quiero filtrar por camiones
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-//	  restriccionTransporte.tipoTransporte = "Furgoneta" //quiero filtrar por furgonetas
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 180)
-//	  
-//	  restriccionFecha.fechaHasta.setDate(25) //tomo las facturaciones hechas hasta el 25, la furgoneta no deberia incluirse
-//	  estadisticas.restriccionesTransporte = Set()
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-//	  restriccionTransporte.tipoTransporte = "Camion"
-//	  estadisticas.restriccionesTransporte += restriccionTransporte
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-//	  restriccionTransporte.tipoTransporte = "Furgoneta"
-//	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 0)
-//	}
-//	
-//	it should "El tiempo (o costo) promedio de cada tipo de transporte" in {
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  SistemaExterno.distanciaTerrestre = 1000
-//	  val restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
-//	  
-//	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
-//	  
-//	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
-//	  
-//	  cliente.generarPaquete(12, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio
-//	  cliente.generarPaquete(10, NecesitaRefrigeracion)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio
-//	  
-//	  cliente.generarPaquete(6, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  furgoneta.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 70047.5)
-//	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 14.58 +- 0.01)
-//	  estadisticas.restriccionesTransporte += restriccionTransporte //quiero filtrar por camiones
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 100075)
-//	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 16.66 +- 0.01)
-//	  restriccionTransporte.tipoTransporte = "Furgoneta" //quiero filtrar por furgonetas
-//	  assert(estadisticas.estadisticasPromedioCostos.get(sucursal1000).get === 40020)
-//	  assert(estadisticas.estadisticasPromedioTiempos.get(sucursal1000).get === 12.5)
-//	}
-//	
+	
+	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  SistemaExterno.distanciaAerea = 1100
+	  
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  sucursal1000.transportes = sucursal1000.transportes :+ furgoneta
+	  sucursal1000.transportes = sucursal1000.transportes :+ avion
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  avion.tipoDePaquetesValidos = Buffer(Fragil)
+	  
+	  cliente.generarPaquete(6, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio //el camion hizo dos viajes
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(5, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio //la furgoneta hizo tres viajes
+	  
+	  cliente.generarPaquete(60, Fragil)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(30, Fragil)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(50, Fragil)
+	  cliente.pedirEnvio
+	  avion.hacerEnvio //el avion hizo un envio
+	  
+	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,6))
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,2))
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,3))
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorAvion())
+	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,1))
+	}
+	
+	it should "la facturacion total (en un rango de fechas) para cada tipo de transporte para todo el sistema" in {
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  SistemaExterno.fechaActual.setDate(18)
+	  val restriccionFecha = RestriccionPorFecha()
+	  restriccionFecha.fechaDesde.setDate(15)
+	  restriccionFecha.fechaHasta.setDate(30)
+	  estadisticas.restriccionesEnvio += restriccionFecha 
+	  
+	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  
+	  cliente.generarPaquete(12, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio //el camion hizo los viajes la fecha 18
+	  
+	  SistemaExterno.fechaActual = new Date()
+	  SistemaExterno.fechaActual.setDate(27)
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio //la furgoneta hizo los envios la fecha 27
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 450)
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion()) //quiero filtrar por camiones
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 180)
+	  
+	  restriccionFecha.fechaHasta.setDate(25) //tomo las facturaciones hechas hasta el 25, la furgoneta no deberia incluirse
+	  estadisticas.restriccionesTransporte = Set()
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 0)
+	}
+	
+	it should "El tiempo (o costo) promedio de cada tipo de transporte" in {
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  SistemaExterno.distanciaTerrestre = 1000
+	  
+	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
+	  
+	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  
+	  cliente.generarPaquete(12, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  cliente.generarPaquete(10, NecesitaRefrigeracion)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  
+	  cliente.generarPaquete(6, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,70047.5))
+	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,14.583333333333334))
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion()) //quiero filtrar por camiones
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,100075))
+	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,16.666666666666668))
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
+	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,40020))
+	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,12.5))
+	}
+	
 	it should "La facturacion total de cada compania por cada sucursal" in {
 	  
 	  flechaBus.agregarSucursal(sucursal1000)
