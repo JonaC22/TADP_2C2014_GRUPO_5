@@ -2,17 +2,18 @@ package tadp_grupo5
 
 import scala.collection.mutable.Queue
 import scala.collection.mutable.Buffer
+import scala.collection.immutable.List
 import java.util.Date
 
 abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
 
   var sistemaExterno: CalculadorDistancia
 
-  var pedidos: Buffer[Paquete] = Buffer()
+  var pedidos: List[Paquete] = List()
 
   var historialEnvios: Queue[Envio] = Queue()
   
-  var tipoDePaquetesValidos : Buffer[Caracteristica] = Buffer(Normal)
+  var tipoDePaquetesValidos : List[Caracteristica] = List(Normal)
 
   def sucursalOrigen: Sucursal = pedidos.head.sucursalOrigen
 
@@ -30,12 +31,12 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
   def descargarTransporte {
     sucursalOrigen.descargarEnvios(pedidos)
     sucursalDestino.descargarEnvios(pedidos)
-    pedidos = Buffer()
+    pedidos = List()
   }
 
   def asignarPaquete(nuevoPaquete : Paquete) {
     validarPaquete(nuevoPaquete)
-    pedidos += nuevoPaquete
+    pedidos = nuevoPaquete :: pedidos
   }
   
   def puedeLlevarPaquete(nuevoPaquete : Paquete) : Boolean = {
@@ -58,18 +59,20 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
   def validarTipoDePaquete(paquete: Paquete) = if(!puedeLlevarTipoDePaquete(paquete)) throw new PaqueteTipoInvalido()
   
   def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
-    if(paquete.caracteristica != NecesitaRefrigeracion){ //el camion es el unico que puede llevar paquetes que necesitan refrigeracion
-      tipoDePaquetesValidos.contains(paquete.caracteristica)
-    }
-    else{
-      false
+    paquete.caracteristica match {
+      case NecesitaRefrigeracion => false //el camion es el unico que puede llevar paquetes que necesitan refrigeracion
+      case _ => tipoDePaquetesValidos.contains(paquete.caracteristica)
     }
   }
 
-  def validarCapacidad(nuevoPaquete: Paquete) = if (capacidad < nuevoPaquete.volumen) throw new TransporteSinCapacidad()
+  val capacidadEsValida: Paquete => Boolean = capacidad < _.volumen
+  
+  def validarCapacidad(nuevoPaquete: Paquete) = if (capacidadEsValida(nuevoPaquete)) throw new TransporteSinCapacidad()
 
+  val destinoEsValido: Paquete => Boolean = {pedidos.size != 0 && _.sucursalDestino != sucursalDestino}
+  
   def validarDestinoPaquete(nuevoPaquete: Paquete) {
-    if (pedidos.size != 0 && nuevoPaquete.sucursalDestino != sucursalDestino) throw new PaquetesDestinoErroneo()
+    if (destinoEsValido(nuevoPaquete)) throw new PaquetesDestinoErroneo()
   }
 
   def volumenOcupadoAceptable: Boolean = (volumen - capacidad) >= volumen * 0.20 // si es mayor o igual al 20% es aceptable
@@ -84,26 +87,28 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
 
   def gananciaEnvio: Double = precioPaquetes - costoEnvioConAdicionales
 
-  def precioPaquetes: Double = pedidos.map(_.precio).sum
+  def precioPaquetes: Double = (for{ pedido <- pedidos } yield pedido.precio).sum //pedidos.map(_.precio).sum
 
   def costoDelViaje: Double = costo * distanciaEntreSucursales
 
   def costoPeajes: Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
 
-  def costoBasePaquetes: Double = pedidos.map(_.costo).sum
+  def costoBasePaquetes: Double = (for{ pedido <- pedidos } yield pedido.costo).sum //pedidos.map(_.costo).sum
 
   def costoAdicionalCasaCentral: Double = 0.0
 
   def costoServicioExtra: Double = {
-    if (!servicioExtra.isEmpty) {
-      servicioExtra.get.costoAdicional(distanciaEntreSucursales * 2) // ida y vuelta
-    } else 0.0
+    servicioExtra match {
+      case Some(x) => x.costoAdicional(distanciaEntreSucursales * 2)// ida y vuelta
+      case None => 0.0
+    }
   }
   
   def costoInfraestructura : Double = { //se asume que si un transporte tiene una infraestructura, los paquetes que lleva son para tal
-    if (!infraestructura.isEmpty) {
-      infraestructura.get.costoAdicional(distanciaEntreSucursales)
-    } else 0.0
+    infraestructura match {
+      case Some(x) => x.costoAdicional(distanciaEntreSucursales)
+      case None => 0.0
+    }
   }
   
   def costoSustanciasUrgentes : Double = 0.0
@@ -113,6 +118,11 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
   def costosAdicionales: Double = costoPeajes + costoConCasaCentral + costoServicioExtra + costoInfraestructura + costoSustanciasUrgentes + costoVolumen
   
   def tipoTransporte : String = ""
+    
+  def paquetesUrgentes: List[Paquete] = { for {
+	  paquete <- pedidos if paquete.caracteristica == Urgente
+  	} yield paquete
+  }
 }
 
 case class Camion(override var sistemaExterno: CalculadorDistancia) extends Transporte(45, 100, 60) {
@@ -123,18 +133,16 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
   override def costoAdicionalCasaCentral: Double = if(sistemaExterno.fechaActual.getDate() > 21) costoEnvio * 0.02 else 0.0
   
   override def puedeLlevarTipoDePaquete(paquete : Paquete) : Boolean = {
-    if(paquete.caracteristica == NecesitaRefrigeracion){
-      true
-    }
-    else {
-      super.puedeLlevarTipoDePaquete(paquete)
+    paquete.caracteristica match {
+      case NecesitaRefrigeracion => true
+      case _ => super.puedeLlevarTipoDePaquete(paquete)
     }
   }
   
   override def costoSustanciasUrgentes : Double = if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
 
   def costoAdicionalPaquetesUrgentes : Double = {
-    var volUrgentes : Double = pedidos.filter(_.caracteristica == Urgente).map(_.volumen).sum
+    var volUrgentes : Double = (for { paquete <- paquetesUrgentes} yield paquete.volumen).sum
     3 * (volUrgentes/ volumen)
   }
   
@@ -150,7 +158,7 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
   override def costoPeajes: Double = super.costoPeajes * 6
   
   override def costoVolumen: Double = {
-    var cantidadUrgentes : Int = pedidos.filter(_.caracteristica == Urgente).size
+    var cantidadUrgentes : Int = paquetesUrgentes.size
     if (!volumenOcupadoAceptable && cantidadUrgentes < 3) costoEnvio else 0.0
   }
   
