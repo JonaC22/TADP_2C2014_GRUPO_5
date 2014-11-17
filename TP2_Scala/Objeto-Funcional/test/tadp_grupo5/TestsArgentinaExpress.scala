@@ -579,28 +579,28 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,0))
 	}
-//	
-//	it should "filtrar envios por una restriccion de tipo de envio" in {
-//	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(10, Urgente)
-//	  cliente.pedirEnvio
-//	  camion.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(3))
-//	  
-//	  var restriccionPaquete = new RestriccionPorTipoPaquete(Urgente) //quiero solamente los paquetes urgentes
-//	  estadisticas.restriccionesPaquete += restriccionPaquete
-//	  
-//	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.get(sucursal1000).contains(1))
-//	}
-//	
+	
+	it should "filtrar envios por una restriccion de tipo de envio" in {
+	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(10, Urgente)
+	  cliente.pedirEnvio
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,3))
+	  
+	  var restriccionPaquete = new RestriccionPorTipoPaquete(Urgente) //quiero solamente los paquetes urgentes
+	  estadisticas.restriccionesPaquete += restriccionPaquete
+	  
+	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,1))
+	}
+	
 //	it should "filtrar envios por una restriccion de tipo de transporte" in {
 //	  var restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
 //	  

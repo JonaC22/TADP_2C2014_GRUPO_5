@@ -137,26 +137,26 @@ class Estadisticas {
 }
 
 trait RestriccionPaquete {
-  def aplicarRestriccion(paquete : Paquete) : Boolean
+  val aplicarRestriccion : Paquete => Boolean
 }
 
 trait RestriccionEnvio {
-  val aplicarRestriccion: Envio => Boolean
+  val aplicarRestriccion : Envio => Boolean
 }
 
 trait RestriccionTransporte {
   def aplicarRestriccion(transporte : Transporte) : Boolean
 }
 
-class RestriccionPorTipoTransporte(var tipoTransporte : String = "") extends RestriccionTransporte{
+case class RestriccionPorTipoTransporte(var tipoTransporte : String = "") extends RestriccionTransporte{
   def aplicarRestriccion(transporte : Transporte) : Boolean = transporte.tipoTransporte == tipoTransporte
 }
 
-class RestriccionPorTipoPaquete(var tipoPaquete : Caracteristica) extends RestriccionPaquete{
-  def aplicarRestriccion(paquete : Paquete) : Boolean = paquete.caracteristica  == tipoPaquete
+case class RestriccionPorTipoPaquete(var tipoPaquete : Caracteristica) extends RestriccionPaquete{
+  val aplicarRestriccion : Paquete => Boolean = _.caracteristica  == tipoPaquete
 }
 
-class RestriccionPorFecha() extends RestriccionEnvio{
+case class RestriccionPorFecha() extends RestriccionEnvio{
   var fechaDesde : Date = new Date()
   var fechaHasta : Date = new Date()
   val aplicarRestriccion : Envio => Boolean = envio => envio.fecha.after(fechaDesde) && envio.fecha.before(fechaHasta)
