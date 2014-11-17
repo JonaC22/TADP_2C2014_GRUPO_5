@@ -601,24 +601,23 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,1))
 	}
 	
-//	it should "filtrar envios por una restriccion de tipo de transporte" in {
-//	  var restriccionTransporte = new RestriccionPorTipoTransporte("Camion")
-//	  
-//	  estadisticas.restriccionesTransporte += restriccionTransporte
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(70)) //80 - 10 = 70
-//	  
-//	  restriccionTransporte.tipoTransporte = "Furgoneta"
-//	  
-//	  assert(estadisticas.estadisticasFacturacionTotalSucursal.get(sucursal1000).contains(0))
-//	}
+	it should "filtrar envios por una restriccion de tipo de transporte" in {
+	  
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  flechaBus.agregarSucursal(sucursal1000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,70)) //80 - 10 = 70
+	  
+	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  
+	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,0))
+	}
 //	
 //	it should "Dada una sucursal la cantidad de viajes segun cada tipos de transportes" in {
 //	  flechaBus.agregarSucursal(sucursal1000)
