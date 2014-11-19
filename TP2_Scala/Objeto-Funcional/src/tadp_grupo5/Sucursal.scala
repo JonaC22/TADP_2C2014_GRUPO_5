@@ -2,13 +2,10 @@ package tadp_grupo5
 
 import scala.collection.mutable.Buffer
 
-case class Sucursal (
-    volumenDeposito : Int,
-    pais : String)
-{
-  var paquetesEnSalir : List[Paquete] 
-  var paquetesEnEntrar : List[Paquete]
-  var transportes : List[Transporte]
+case class Sucursal (volumenDeposito : Int, pais : String){
+  var paquetesEnSalir : List[Paquete] = List()
+  var paquetesEnEntrar : List[Paquete] = List()
+  var transportes : List[Transporte] = List()
   
   def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
   
@@ -35,15 +32,12 @@ case class Sucursal (
   
   def notificarPaqueteAEntrar(paquete : Paquete) {
     validarCapacidad(paquete)
-    agregarPaquete(paquete,paquetesEnEntrar)  
+    paquetesEnEntrar = paquetesEnEntrar :+ paquete
   }
-  
-  val agregarPaquete = (_:Paquete)::(_:List[Paquete]) //Esto por ahora no sirve para nada...
-  
   
   def notificarPaqueteASalir(paquete : Paquete) {
     validarCapacidad(paquete)
-    agregarPaquete(paquete,paquetesEnSalir)
+    paquetesEnSalir = paquetesEnSalir :+ paquete 
     asignarPaquete(paquete)
     asignarPendientes
   } 

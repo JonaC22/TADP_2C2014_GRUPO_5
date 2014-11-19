@@ -1,7 +1,6 @@
 package tadp_grupo5
 
 import org.scalatest._
-import scala.collection.mutable.Buffer
 import scala.collection.immutable.Set
 import java.util.Date
 
@@ -33,11 +32,11 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val sucursal2000 = new Sucursal(2000, "Brasil")
     val sucursal3000 = new Sucursal(3000, "Argentina")
 	val casaCentral = new CasaCentral(20, "Brasil")
-	val sucursales = Buffer(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal2000, sucursal3000, casaCentral)
+	val sucursales = List(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal2000, sucursal3000, casaCentral)
 	
 	val flechaBus = new Compania()
 	val chevallier = new Compania()
-	val companias = Buffer(flechaBus, chevallier)
+	val companias = List(flechaBus, chevallier)
 	
 	val cliente = new Cliente(sucursal1000, sucursal3000)
 	  
@@ -47,7 +46,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val otroCamion = new Camion(SistemaExterno)
 	val avion = new Avion(SistemaExterno)
 	val furgoneta = new Furgoneta(SistemaExterno)
-	val transportes = Buffer(camion, otroCamion, avion, furgoneta)
+	val transportes = List(camion, otroCamion, avion, furgoneta)
 
 	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
 	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
@@ -68,13 +67,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  cliente.paquete = null
 	  cliente.sucursalOrigen = sucursal1000
 	  cliente.sucursalDestino = sucursal3000
-	  transportes.foreach(_.pedidos = Buffer())
+	  transportes.foreach(_.pedidos = List())
 	  transportes.foreach(_.servicioExtra = None)
 	  transportes.foreach(_.infraestructura = None)
-	  transportes.foreach(_.tipoDePaquetesValidos = Buffer(Normal))
+	  transportes.foreach(_.tipoDePaquetesValidos = List(Normal))
 	  transportes.foreach(_.historialEnvios  = List())
-	  sucursales.foreach(_.paquetesEnEntrar = Buffer())
-	  sucursales.foreach(_.paquetesEnSalir = Buffer())
+	  sucursales.foreach(_.paquetesEnEntrar = List())
+	  sucursales.foreach(_.paquetesEnSalir = List())
 	  sucursales.foreach(_.transportes = List())
 	  companias.foreach(_.sucursales = List())
 	  SistemaExterno.distanciaTerrestre  = 0.0
@@ -162,11 +161,11 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  intercept[PaqueteTipoInvalido]{
 	    furgoneta.asignarPaquete(paqueteUrgenteLiviano) //no puede llevar paquetes fragiles ni urgentes
 	  }
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  intercept[PaqueteTipoInvalido]{
 	    furgoneta.asignarPaquete(paqueteFragil) //aun no puede enviar el paquete fragil
 	  }
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente, Fragil)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente, Fragil)
 	  furgoneta.asignarPaquete(paqueteUrgenteLiviano)
 	  furgoneta.asignarPaquete(paqueteFragil)
 	  assert(furgoneta.pedidos.size == 2)
@@ -241,7 +240,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  camion.asignarPaquete(paqueteUrgentePesado)
 	  camion.asignarPaquete(paqueteUrgentePesado)
 	  camion.infraestructura = Some(SustanciasPeligrosas)
@@ -322,14 +321,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  camion.hacerEnvio
 	  
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,10))
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,15)) // (10+20)/2
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -360,14 +359,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  camion.hacerEnvio
 	 
 	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,70))
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,80)) // (70+90)/2
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -401,7 +400,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	 
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000, 0.8333333333333334))
 	  SistemaExterno.distanciaTerrestre = 100
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
@@ -409,7 +408,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,1.25)) // ((50/60)+(100/60))/2
 	  
 	  SistemaExterno.distanciaTerrestre = 150
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -443,14 +442,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	 
 	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,1))
 	  
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,2))
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -484,14 +483,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	 
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,1))
 	  
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,2))
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -529,14 +528,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	 
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,70)) // 80 - 10 = 70
 	  
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,160))
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
@@ -581,7 +580,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "filtrar envios por una restriccion de tipo de envio" in {
-	  camion.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  flechaBus.agregarSucursal(sucursal1000)
 	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes = sucursal1000.transportes :+ camion
@@ -628,8 +627,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursal1000.transportes = sucursal1000.transportes :+ furgoneta
 	  sucursal1000.transportes = sucursal1000.transportes :+ avion
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
-	  avion.tipoDePaquetesValidos = Buffer(Fragil)
+	  furgoneta.tipoDePaquetesValidos = List(Urgente)
+	  avion.tipoDePaquetesValidos = List(Fragil)
 	  
 	  cliente.generarPaquete(6, NecesitaRefrigeracion)
 	  cliente.pedirEnvio
@@ -678,7 +677,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Urgente)
 	  
 	  cliente.generarPaquete(12, NecesitaRefrigeracion)
 	  cliente.pedirEnvio
@@ -718,7 +717,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Urgente)
 	  
 	  cliente.generarPaquete(12, NecesitaRefrigeracion)
 	  cliente.pedirEnvio
@@ -769,7 +768,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalCompanias.contains((flechaBus,(sucursal2000,70))))
 	  
-	  furgoneta.tipoDePaquetesValidos = Buffer(Normal, Urgente)
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000
