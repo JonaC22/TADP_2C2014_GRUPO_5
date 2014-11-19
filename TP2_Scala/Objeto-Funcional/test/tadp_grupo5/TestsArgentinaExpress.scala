@@ -319,13 +319,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  cliente.pedirEnvio
 	  
 	  camion.hacerEnvio
-	  
+
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,10))
 	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
-	  
+
 	  camion.hacerEnvio
+
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,15)) // (10+20)/2
 	  
 	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)

@@ -13,9 +13,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def transportesQuePuedenLLevar : Paquete => Unit = {
     paquete =>
-     val lista = (for{
-       transporte <- transportes if transporte.puedeLlevarPaquete(paquete)
-      }yield transporte)
+     var lista = for{transporte <- transportes if transporte.puedeLlevarPaquete(paquete)}yield transporte
      if(!lista.isEmpty) lista.head.asignarPaquete(paquete)
   }
     
@@ -26,9 +24,9 @@ case class Sucursal (volumenDeposito : Int, pais : String){
         paquete <- paquetesEnSalir if !transportes.exists(_.pedidos.contains(paquete))
       }yield paquete
   
-  def asignarPendientes(){
+  def asignarPendientes()= {
     var paquetes = paquetesPendientes
-    if(paquetes != 0) paquetes.foreach(x => asignarPaquete(x))
+    if(paquetes.size != 0) paquetes.foreach(x => asignarPaquete(x))
   }
   
   def notificarPaqueteAEntrar(paquete : Paquete) {
@@ -51,10 +49,8 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   def descargarEnvio(pedido : Paquete){
     if(pedido.sucursalDestino  == this){
       paquetesEnEntrar = paquetesEnEntrar.filterNot(_== pedido) 
-    }
-    if (capacidad < pedido.volumen) throw new SucursalSinCapacidad()
+    } else paquetesEnSalir = paquetesEnSalir.filterNot(_== pedido)
    }
-
 }
 
 class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
