@@ -11,18 +11,19 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def esCasaCentral: Boolean = false
   
-  val transportesQuePuedenLLevar :Paquete => List[Transporte] = {
+  def transportesQuePuedenLLevar : Paquete => Unit = {
     paquete =>
-      for{
+     val lista = (for{
        transporte <- transportes if transporte.puedeLlevarPaquete(paquete)
-      }yield transporte
+      }yield transporte)
+     if(!lista.isEmpty) lista.head.asignarPaquete(paquete)
   }
     
-  val asignarPaquete =  (paquete:Paquete) =>  transportesQuePuedenLLevar(paquete).head 
+  def asignarPaquete : Paquete => Unit = paquete => transportesQuePuedenLLevar(paquete)
  
-  val paquetesPendientes  = 
+  def paquetesPendientes  = 
       for{
-        paquete <- paquetesEnSalir if transportes.exists(_.pedidos.contains(paquete))
+        paquete <- paquetesEnSalir if !transportes.exists(_.pedidos.contains(paquete))
       }yield paquete
   
   def asignarPendientes(){
