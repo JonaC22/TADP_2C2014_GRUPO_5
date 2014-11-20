@@ -214,13 +214,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	it should "calcular el costo de un envio dependiendo la infraestructura" in {
 	  camion.asignarPaquete(paquete10)
 	  camion.asignarPaquete(paquete20)
-	  camion.infraestructura = Some(SustanciasPeligrosas)
+	  camion.infraestructura = Some(camion.sustanciasPeligrosas)
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  
 	  assert(camion.costoEnvioConAdicionales == 694)//20 + 100*0.5 + 2*12 + 600
 	
-	  camion.infraestructura = Some(Animales)
+	  camion.infraestructura = Some(camion.animales)
 	  //distancia menor a 100km
 	  SistemaExterno.distanciaTerrestre = 50
 	  assert(camion.costoEnvioConAdicionales == 5094)//20 + 100*50 + 2*12 + 50
@@ -243,7 +243,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
 	  camion.asignarPaquete(paqueteUrgentePesado)
 	  camion.asignarPaquete(paqueteUrgentePesado)
-	  camion.infraestructura = Some(SustanciasPeligrosas)
+	  camion.infraestructura = Some(camion.sustanciasPeligrosas)
 	  
 	  assert(camion.capacidad == 5)
 	  assert(camion.costoEnvio == 40)

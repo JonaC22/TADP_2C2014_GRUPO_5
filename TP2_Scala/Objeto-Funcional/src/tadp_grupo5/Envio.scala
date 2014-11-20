@@ -1,7 +1,6 @@
 package tadp_grupo5
 
 import java.util.Date
-import scala.collection.mutable.Buffer
 
 case class Envio(sucursalOrigen: Sucursal,
   sucursalDestino: Sucursal,

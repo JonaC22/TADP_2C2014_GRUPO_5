@@ -1,10 +1,21 @@
 package tadp_grupo5
 
-import scala.collection.mutable.Buffer
 import scala.collection.immutable.List
 import java.util.Date
 
-abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double, var servicioExtra: Option[ServicioExtra] = None, var infraestructura: Option[Infraestructura] = None) {
+abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double, var servicioExtra: Option[ServicioExtra] = None) {
+  
+  type Infraestructura = Double => Double
+  
+  val sustanciasPeligrosas : Infraestructura = kilometros => 600
+  
+  val animales : Infraestructura = {
+    case kilometros if kilometros < 100 => 50
+    case kilometros if kilometros < 200 => 86
+    case _ => 137
+  }
+  
+  var infraestructura: Option[Infraestructura] = None
 
   var sistemaExterno: CalculadorDistancia
 
@@ -105,7 +116,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
   
   def costoInfraestructura : Double = { //se asume que si un transporte tiene una infraestructura, los paquetes que lleva son para tal
     infraestructura match {
-      case Some(x) => x.costoAdicional(distanciaEntreSucursales)
+      case Some(x) => x(distanciaEntreSucursales)
       case None => 0.0
     }
   }
@@ -133,7 +144,7 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
     }
   }
   
-  override def costoSustanciasUrgentes : Double = if (infraestructura == Some(SustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
+  override def costoSustanciasUrgentes : Double = if (infraestructura == Some(sustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
 
   def costoAdicionalPaquetesUrgentes : Double = {
     var volUrgentes : Double = (for { paquete <- paquetesUrgentes} yield paquete.volumen).sum
