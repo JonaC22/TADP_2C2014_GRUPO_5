@@ -46,7 +46,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
 
   def asignarPaquete(nuevoPaquete : Paquete) {
     validarPaquete(nuevoPaquete)
-    pedidos = nuevoPaquete :: pedidos
+    pedidos = pedidos :+ nuevoPaquete
   }
   
   def puedeLlevarPaquete(nuevoPaquete : Paquete) : Boolean = {
@@ -103,7 +103,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
 
   def costoPeajes: Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
 
-  def costoBasePaquetes: Double = pedidos.map(_.costo).sum //(for{ pedido <- pedidos } yield pedido.costo).sum //pedidos.map(_.costo).sum
+  def costoBasePaquetes: Double = (for{ pedido <- pedidos } yield pedido.costo).sum //pedidos.map(_.costo).sum
 
   def costoAdicionalCasaCentral: Double = 0.0
 
@@ -144,8 +144,13 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
     }
   }
   
-  override def costoSustanciasUrgentes : Double = if (infraestructura == Some(sustanciasPeligrosas)) costoAdicionalPaquetesUrgentes else 0
-
+  override def costoSustanciasUrgentes : Double = {
+    infraestructura match {
+      case Some(sustanciasPeligrosas) => costoAdicionalPaquetesUrgentes
+      case _ => 0.0
+    }
+  }
+  
   def costoAdicionalPaquetesUrgentes : Double = {
     var volUrgentes : Double = (for { paquete <- paquetesUrgentes} yield paquete.volumen).sum
     3 * (volUrgentes/ volumen)
