@@ -200,13 +200,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 
 	  camion.asignarPaquete(paquete10)
 	  camion.asignarPaquete(paquete20)
-	  camion.servicioExtra = Some(SeguimientoSatelital)
+	  camion.servicioExtra = Some(camion.seguimientoSatelital)
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  
 	  assert(camion.gananciaEnvio == 65.5)//160 - (20 + 100*0.5 + 2*12 + 0.5)
 
-	  camion.servicioExtra = Some(SeguimientoSatelitalConVideo)
+	  camion.servicioExtra = Some(camion.seguimientoSatelitalConVideo)
 	  
 	  assert(camion.gananciaEnvio === 62.25 +- 0.01)
 	}

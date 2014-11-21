@@ -3,9 +3,14 @@ package tadp_grupo5
 import scala.collection.immutable.List
 import java.util.Date
 
-abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double, var servicioExtra: Option[ServicioExtra] = None) {
+abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double) {
   
   type Infraestructura = Double => Double
+  type ServicioExtra = Double => Double
+  
+  val seguimientoSatelital : ServicioExtra = kilometros => kilometros * 0.5
+  
+  val seguimientoSatelitalConVideo : ServicioExtra = kilometros => kilometros * 3.74
   
   val sustanciasPeligrosas : Infraestructura = kilometros => 600
   
@@ -14,6 +19,8 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
     case kilometros if kilometros < 200 => 86
     case _ => 137
   }
+  
+  var servicioExtra : Option[ServicioExtra] = None
   
   var infraestructura: Option[Infraestructura] = None
 
@@ -109,7 +116,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
 
   def costoServicioExtra: Double = {
     servicioExtra match {
-      case Some(x) => x.costoAdicional(distanciaEntreSucursales * 2)// ida y vuelta
+      case Some(x) => x(distanciaEntreSucursales * 2)// ida y vuelta
       case None => 0.0
     }
   }
