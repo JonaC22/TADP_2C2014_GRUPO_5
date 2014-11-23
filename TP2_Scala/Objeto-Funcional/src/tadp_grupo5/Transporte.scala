@@ -43,7 +43,7 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
     descargarTransporte
   }
 
-  def agregarEnvioAHistorial = historialEnvios = historialEnvios :+ new Envio(sucursalOrigen, sucursalDestino, pedidos.toList, distanciaEntreSucursales, gananciaEnvio, costoEnvioConAdicionales, sistemaExterno.fechaActual)
+  def agregarEnvioAHistorial = historialEnvios = historialEnvios :+ new Envio(sucursalOrigen, sucursalDestino, pedidos.toList, distanciaEntreSucursales, gananciaEnvio, costoEnvioConAdicionales, sistemaExterno.fechaActual, this)
 
   def descargarTransporte {
     sucursalOrigen.descargarEnvios(pedidos)

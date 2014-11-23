@@ -8,6 +8,7 @@ class Estadisticas {
   
   type tuplaSucursalValue = (Sucursal, Double)
   type tuplaCompaniaSucursalValue = (Compania, tuplaSucursalValue)
+  type funcionCalculo = List[Envio] => Double
  
   var companiasEnEstudio : List[Compania] = List()
   var restriccionesEnvio : Set[RestriccionEnvio] = Set()
@@ -44,53 +45,56 @@ class Estadisticas {
     } yield paquete
   }
   
-  val estadisticasCompania : (Sucursal => Double) => Compania => List[tuplaCompaniaSucursalValue] = {
+  val estadisticasCompania : funcionCalculo => Compania => List[tuplaCompaniaSucursalValue] = {
      f => compania => for {
        sucursal <- compania.sucursales
      } yield (compania, estadisticasSucursal(f)(sucursal))
   }
   
-  val estadisticasSucursal : (Sucursal => Double) => Sucursal => tuplaSucursalValue = {
-	 f => sucursal => (sucursal, f(sucursal))
+  val estadisticasSucursal : funcionCalculo => Sucursal => tuplaSucursalValue = {
+	 f => sucursal => (sucursal, f(obtenerEnviosSucursal(sucursal)))
   }
   
-  val estadisticasSucursales : (Sucursal => Double) => List[tuplaSucursalValue] = {
+  val estadisticasPromedioSucursal : funcionCalculo => Sucursal => tuplaSucursalValue = {
+	 f => sucursal => (sucursal, promedioViaje(f)(sucursal))
+  }
+  
+  val estadisticasSucursales : funcionCalculo => List[tuplaSucursalValue] = {
     f => 
     for {sucursal <- sucursalesEnEstudio} yield estadisticasSucursal(f)(sucursal)
   }
   
-  val estadisticasPromedioSucursales : (Sucursal => Double) => List[tuplaSucursalValue] = {
-    f => estadisticasSucursales(promedioViaje(f))
+  val estadisticasPromedioSucursales : funcionCalculo => List[tuplaSucursalValue] = {
+    f => 
+    for {sucursal <- sucursalesEnEstudio} yield estadisticasPromedioSucursal(f)(sucursal)
   }
   
-  val facturacionTotalSucursal : Sucursal => Double = {
-    { sucursal : Sucursal => 
+  val facturacionTotalSucursal : funcionCalculo = {
+    envios =>
       (for {
-    	  envio <- obtenerEnviosSucursal(sucursal)
+    	  envio <- envios
       	} yield envio.gananciaEnvio).sum
-    }
   }
   
-  val costosEnviosSucursal : Sucursal => Double = {
-    sucursal => (for {
-      envio <- obtenerEnviosSucursal(sucursal)
+  val costosEnviosSucursal : funcionCalculo = {
+    envios => (for {
+      envio <- envios
       } yield envio.costoEnvioConAdicionales).sum
   }
   
-  val cantidadViajesSucursal : Sucursal => Double = obtenerEnviosSucursal(_).size
+  val cantidadViajesSucursal : funcionCalculo = _.size
   
-  val cantidadPaquetesEnviados : Sucursal => Double = obtenerPaquetes(_).size
+  val cantidadPaquetesEnviados : funcionCalculo = obtenerPaquetes(_).size
   
-  val tiempoTotalViajesSucursal : Sucursal => Double = {
-    sucursal => (for {
-      transporte <- obtenerTransportes(sucursal)
-      envio <- obtenerEnviosTransporte(transporte)
-      } yield envio.distanciaRecorrida/transporte.velocidad).sum
+  val tiempoTotalViajesSucursal : funcionCalculo = {
+    envios => (for {
+      envio <- envios
+      } yield envio.distanciaRecorrida/envio.transporte.velocidad).sum
   }
   
-  val promedioViaje : (Sucursal => Double) => Sucursal => Double = {
+  val promedioViaje : funcionCalculo => Sucursal => Double = {
     funcionValorTotal => sucursal => 
-      if(cantidadViajesSucursal(sucursal) != 0.0) funcionValorTotal(sucursal) / cantidadViajesSucursal(sucursal) else 0.0  
+      if(cantidadViajesSucursal(obtenerEnviosSucursal(sucursal)) != 0.0) funcionValorTotal(obtenerEnviosSucursal(sucursal)) / cantidadViajesSucursal(obtenerEnviosSucursal(sucursal)) else 0.0  
   }
   
   def agregarCompania(compania : Compania) = companiasEnEstudio = companiasEnEstudio :+ compania

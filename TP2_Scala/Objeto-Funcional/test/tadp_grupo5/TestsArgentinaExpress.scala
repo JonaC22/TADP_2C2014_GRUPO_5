@@ -6,6 +6,8 @@ import java.util.Date
 
 class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
   
+    type funcionCalculo = List[Envio] => Double
+  
 	object SistemaExterno extends CalculadorDistancia {
 		var distanciaTerrestre : Double = 0.0
 		var distanciaAerea : Double = 0.0
@@ -310,7 +312,59 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(avion.costosAdicionales == 75001)
 	}
 	
-	"Las estadisticas" should "mostrar costo promedio de las sucursales en analisis" in {
+	"Las estadisticas" should "ser parametrizables" in {
+	  
+	  val distanciaTotalEnvios : funcionCalculo = { envios => 
+      (for {
+    	  envio <- envios
+      	} yield envio.distanciaRecorrida).sum
+      }
+	  
+	  SistemaExterno.distanciaTerrestre = 200
+	  
+	  flechaBus.agregarSucursal(sucursal1000)
+	  flechaBus.agregarSucursal(sucursal3000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  camion.hacerEnvio
+
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,200))
+	  
+	  SistemaExterno.distanciaTerrestre = 500
+	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+
+	  camion.hacerEnvio
+
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
+	  
+	  
+	  SistemaExterno.distanciaTerrestre = 1500
+	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  furgoneta.hacerEnvio
+	  
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal3000,3000)) // (30+10)/2
+	}
+	
+	it should "mostrar costo promedio de las sucursales en analisis" in {
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)

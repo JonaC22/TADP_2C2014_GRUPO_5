@@ -8,4 +8,5 @@ case class Envio(sucursalOrigen: Sucursal,
   distanciaRecorrida: Double,
   gananciaEnvio: Double,
   costoEnvioConAdicionales: Double,
-  fecha: Date = new Date())
+  fecha: Date = new Date(),
+  transporte : Transporte)
