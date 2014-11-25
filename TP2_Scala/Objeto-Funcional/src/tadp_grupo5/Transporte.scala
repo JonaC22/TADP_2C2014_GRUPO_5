@@ -169,8 +169,7 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
   override def costoVolumen: Double = if (!volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral) costoEnvio * ((volumen - capacidad)/ volumen) else 0.0
   
   override def asignarPaquete(nuevoPaquete : Paquete) : Camion = {
-    var transporte = super.asignarPaquete(nuevoPaquete)
-    transporte.asInstanceOf[Camion]
+    super.asignarPaquete(nuevoPaquete).asInstanceOf[Camion]
   }
 }
 
@@ -186,8 +185,7 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
   }
 
   override def asignarPaquete(nuevoPaquete : Paquete) : Furgoneta = {
-    var transporte = super.asignarPaquete(nuevoPaquete)
-    transporte.asInstanceOf[Furgoneta]
+    super.asignarPaquete(nuevoPaquete).asInstanceOf[Furgoneta]
   }
 }
 
@@ -211,8 +209,7 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
   override def costoVolumen: Double = if (!volumenOcupadoAceptable) costoEnvio * 2 else 0.0 //si el volumen ocupado es menor al 20% el costo de envio se contabiliza 2 veces mas
 
   override def asignarPaquete(nuevoPaquete : Paquete) : Avion = {
-    var transporte = super.asignarPaquete(nuevoPaquete)
-    transporte.asInstanceOf[Avion]
+    super.asignarPaquete(nuevoPaquete).asInstanceOf[Avion]
   }
 }
 
