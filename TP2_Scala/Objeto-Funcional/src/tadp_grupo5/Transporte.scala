@@ -2,8 +2,9 @@ package tadp_grupo5
 
 import scala.collection.immutable.List
 import java.util.Date
+import scala.collection.mutable.Cloneable
 
-abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double) {
+abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Double) extends Cloneable[Transporte] {
   
   type Infraestructura = Double => Double
   type ServicioExtra = Double => Double
@@ -50,10 +51,12 @@ abstract class Transporte(val volumen: Double, costo: Double, val velocidad: Dou
     sucursalDestino.descargarEnvios(pedidos)
     pedidos = List()
   }
-
-  def asignarPaquete(nuevoPaquete : Paquete) {
+  
+  def asignarPaquete(nuevoPaquete : Paquete) : Transporte = {
     validarPaquete(nuevoPaquete)
-    pedidos = pedidos :+ nuevoPaquete
+    val clone = this.clone()
+    clone.pedidos = pedidos :+ nuevoPaquete
+    clone
   }
   
   def puedeLlevarPaquete(nuevoPaquete : Paquete) : Boolean = {
@@ -165,6 +168,10 @@ case class Camion(override var sistemaExterno: CalculadorDistancia) extends Tran
   
   override def costoVolumen: Double = if (!volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral) costoEnvio * ((volumen - capacidad)/ volumen) else 0.0
   
+  override def asignarPaquete(nuevoPaquete : Paquete) : Camion = {
+    var transporte = super.asignarPaquete(nuevoPaquete)
+    transporte.asInstanceOf[Camion]
+  }
 }
 
 case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends Transporte(9, 40, 80) {
@@ -178,6 +185,10 @@ case class Furgoneta(override var sistemaExterno: CalculadorDistancia) extends T
     if (!volumenOcupadoAceptable && cantidadUrgentes < 3) costoEnvio else 0.0
   }
 
+  override def asignarPaquete(nuevoPaquete : Paquete) : Furgoneta = {
+    var transporte = super.asignarPaquete(nuevoPaquete)
+    transporte.asInstanceOf[Furgoneta]
+  }
 }
 
 case class Avion(override var sistemaExterno: CalculadorDistancia) extends Transporte(200, 500, 500) {
@@ -199,6 +210,10 @@ case class Avion(override var sistemaExterno: CalculadorDistancia) extends Trans
   
   override def costoVolumen: Double = if (!volumenOcupadoAceptable) costoEnvio * 2 else 0.0 //si el volumen ocupado es menor al 20% el costo de envio se contabiliza 2 veces mas
 
+  override def asignarPaquete(nuevoPaquete : Paquete) : Avion = {
+    var transporte = super.asignarPaquete(nuevoPaquete)
+    transporte.asInstanceOf[Avion]
+  }
 }
 
 abstract class TransporteException() extends Exception
