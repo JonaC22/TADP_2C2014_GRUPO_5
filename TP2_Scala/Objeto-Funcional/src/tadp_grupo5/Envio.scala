@@ -2,7 +2,7 @@ package tadp_grupo5
 
 import java.util.Date
 
-case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: List[Paquete], fecha: Date = new Date, transporte : Transporte){
+case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: List[Paquete], transporte : Transporte, fecha: Date = new Date){
   
   def costosPaquetes: List[Double] = for{ paquete <- paquetes } yield paquete.caracteristica.costo
   def paquetesRefrigeracion: List[Paquete] = for{ paquete <- paquetes if paquete.caracteristica == NecesitaRefrigeracion} yield paquete

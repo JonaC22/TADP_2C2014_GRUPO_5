@@ -16,7 +16,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def esCasaCentral: Boolean = false
   
-  def asignarPaquete(paquete: Paquete) = {
+  def asignarPaquete(paquete: Paquete) = {//faltaria buscar el transporte que se modifica y reemplazarlo por el nuevo
     var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
     var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
     if(!cargadosValidos.isEmpty)  despachante.agregarPedido(cargadosValidos.head, paquete)
@@ -46,6 +46,8 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     for (pedido <- envio.paquetes) descargarEnvio(pedido)
     if(envio.sucursalOrigen  == this)
     	enviosRealizados = enviosRealizados :+ envio
+    	var unTransporte = despachante.vaciarTransporte(envio.transporte)
+    	//faltaria buscar el transporte cargado y reemplazarlo por el vacio en la lista de transportes
   }
   
   def descargarEnvio(pedido : Paquete){
