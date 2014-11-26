@@ -1,56 +1,73 @@
 package tadp_grupo5
 
-import scala.collection.mutable.Buffer
 
 case class Sucursal (volumenDeposito : Int, pais : String){
-  var paquetesEnSalir : List[Paquete] = List()
-  var paquetesEnEntrar : List[Paquete] = List()
+  var paquetesPorSalir : List[Paquete] = List()
+  var paquetesPorEntrar : List[Paquete] = List()
   var transportes : List[Transporte] = List()
   
-  def capacidad : Int = volumenDeposito - paquetesEnEntrar.map(_.volumen).sum - paquetesEnSalir.map(_.volumen).sum  
+  var enviosRealizados: List [Envio] = List()
+  var pedidosPendientes: List [Paquete] = List()
+
+  
+  val despachante: Despachante = Despachante()
+  
+  def capacidad : Int = volumenDeposito - paquetesPorEntrar.map(_.volumen).sum - paquetesPorSalir.map(_.volumen).sum  
   
   def esCasaCentral: Boolean = false
   
-  def transportesQuePuedenLLevar : Paquete => Unit = {
-    paquete =>
-     var lista = for{transporte <- transportes if transporte.puedeLlevarPaquete(paquete)}yield transporte
-     if(!lista.isEmpty) lista.head.asignarPaquete(paquete)
+  def asignarPaquete(paquete: Paquete) = {
+    var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
+    var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
+    if(!cargadosValidos.isEmpty)  despachante.agregarPedido(cargadosValidos.head, paquete)
+	else if(!vaciosValidos.isEmpty) despachante.agregarPedido(vaciosValidos.head, paquete)
+	else pedidosPendientes = pedidosPendientes :+ paquete
   }
-    
-  def asignarPaquete : Paquete => Unit = paquete => transportesQuePuedenLLevar(paquete)
- 
-  def paquetesPendientes  = 
-      for{
-        paquete <- paquetesEnSalir if !transportes.exists(_.pedidos.contains(paquete))
-      }yield paquete
   
   def asignarPendientes()= {
-    var paquetes = paquetesPendientes
-    if(paquetes.size != 0) paquetes.foreach(x => asignarPaquete(x))
+    if(!pedidosPendientes.isEmpty) pedidosPendientes.foreach(x => asignarPaquete(x))
   }
   
   def notificarPaqueteAEntrar(paquete : Paquete) {
     validarCapacidad(paquete)
-    paquetesEnEntrar = paquetesEnEntrar :+ paquete
+    paquetesPorEntrar = paquetesPorEntrar :+ paquete
   }
   
   def notificarPaqueteASalir(paquete : Paquete) {
     validarCapacidad(paquete)
-    paquetesEnSalir = paquetesEnSalir :+ paquete 
+    paquetesPorSalir = paquetesPorSalir :+ paquete 
     asignarPaquete(paquete)
     asignarPendientes
   } 
  
-   def validarCapacidad(paquete : Paquete) = 
-     if (capacidad < paquete.volumen) throw new SucursalSinCapacidad()
+  def validarCapacidad(paquete : Paquete) = if (capacidad < paquete.volumen) throw new SucursalSinCapacidad()
   
-  val descargarEnvios = (pedidos:List[Paquete]) => for (pedido <- pedidos) descargarEnvio(pedido)
+  def descargarEnvios(envio: Envio) = {
+    for (pedido <- envio.paquetes) descargarEnvio(pedido)
+    if(envio.sucursalOrigen  == this)
+    	enviosRealizados = enviosRealizados :+ envio
+  }
   
   def descargarEnvio(pedido : Paquete){
     if(pedido.sucursalDestino  == this){
-      paquetesEnEntrar = paquetesEnEntrar.filterNot(_== pedido) 
-    } else paquetesEnSalir = paquetesEnSalir.filterNot(_== pedido)
-   }
+      paquetesPorEntrar = paquetesPorEntrar.filterNot(_== pedido) 
+    } else paquetesPorSalir = paquetesPorSalir.filterNot(_== pedido)
+  }
+  
+  
+  //Esta parte se puede mejorar y usar composicion (pero logro hacerlo andar)
+  def filtrarTransportes(f: Transporte => Boolean): List[Transporte] = {
+    for { transporte <- transportes if(f(transporte))} yield transporte
+  }
+  
+  val filtroVacios : Transporte => Boolean = _.pedidos.isEmpty
+  val filtroCargados: Transporte => Boolean = !_.pedidos.isEmpty
+  
+  val filtroValidos: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.validar(paquete)
+  
+  def filtrarValidos : (Paquete, List[Transporte], (Transporte,Paquete) => Boolean) => List[Transporte] = {
+    (paquete,trans,f) => for { transporte <- trans if(f(transporte,paquete))} yield transporte
+  }
 }
 
 class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
