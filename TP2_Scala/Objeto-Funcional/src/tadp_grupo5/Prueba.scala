@@ -27,5 +27,23 @@ case class Despachante() {
 			case _ => throw new TransporteInvalido()
 		}
 	}
+	
+	def modificarServicioExtra(unTransporte: Transporte, servicio: Option[ServicioExtra]) = {
+	  unTransporte match {
+			case Camion(_,_,_,_,_) => unTransporte.asInstanceOf[Camion].copy(servicioExtra = servicio)
+			case Furgoneta(_,_,_,_,_) => unTransporte.asInstanceOf[Furgoneta].copy(servicioExtra = servicio)
+			case Avion(_,_,_,_,_) => unTransporte.asInstanceOf[Avion].copy(servicioExtra = servicio)
+			case _ => throw new TransporteInvalido()
+		}
+	}
+	
+	def modificarInfraestructura(unTransporte: Transporte, inf: Option[Infraestructura]) = {
+	  unTransporte match {
+			case Camion(_,_,_,_,_) => unTransporte.asInstanceOf[Camion].copy(infraestructura = inf)
+			case Furgoneta(_,_,_,_,_) => unTransporte.asInstanceOf[Furgoneta].copy(infraestructura = inf)
+			case Avion(_,_,_,_,_) => unTransporte.asInstanceOf[Avion].copy(infraestructura = inf)
+			case _ => throw new TransporteInvalido()
+		}
+	}
 
 }

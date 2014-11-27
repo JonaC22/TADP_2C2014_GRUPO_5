@@ -71,7 +71,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   val filtroVacios : Transporte => Boolean = _.pedidos.isEmpty
   val filtroCargados: Transporte => Boolean = !_.pedidos.isEmpty
   
-  val filtroValidos: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.validar(paquete)
+  val filtroValidos: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.puedeLlevar(paquete)
   
   def filtrarValidos : (Paquete, List[Transporte], (Transporte,Paquete) => Boolean) => List[Transporte] = {
     (paquete,trans,f) => for { transporte <- trans if(f(transporte,paquete))} yield transporte

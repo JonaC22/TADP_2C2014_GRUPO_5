@@ -9,7 +9,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
     type funcionCalculo = List[Envio] => Double
   
 	object SistemaExterno extends CalculadorDistancia {
-		var distanciaTerrestre : Double = 0.0
+		var distanciaTerrestre : Double = 1
 		var distanciaAerea : Double = 0.0
 		var cantidadPeajes : Int = 0
 		var fechaActual : Date = new Date()
@@ -81,7 +81,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 //	  sucursales.foreach(_.paquetesPorSalir = List())
 //	  sucursales.foreach(_.transportes = List())
 //	  companias.foreach(_.sucursales = List())
-	  SistemaExterno.distanciaTerrestre  = 0.0
+	  SistemaExterno.distanciaTerrestre  = 1
 	  SistemaExterno.distanciaAerea  = 0.0
 	  SistemaExterno.cantidadPeajes  = 0
 	  SistemaExterno.fechaActual.setDate(1)
@@ -98,9 +98,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 
 	it should " poder agregarse mas paquetes" in {
 		sucursal10.notificarPaqueteASalir(paquete5)
-		assert(sucursal10.capacidad == 5)
-		sucursal10.notificarPaqueteAEntrar(paquete5)
-		assert(sucursal10.capacidad == 0)
+		assert(sucursal10.capacidad == 4)
 	}
 	
 	it should "no poder agregarse mas paquetes" in {
@@ -124,15 +122,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	"Un transporte" should "tener capacidad" in {
 		var nuevoCamion = desp.agregarPedido(camion, paquete10)
 		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
-//	    camion.asignarPaquete(paquete10)
-//		camion.asignarPaquete(paquete20)
+
 		assert(nuevoCamion.pedidos.size == 2)
 		assert(nuevoCamion.capacidad == 15) //45 - 10 - 20 = 15
 		
 		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete5)
 		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete10)
-//		camion.asignarPaquete(paquete5)
-//		camion.asignarPaquete(paquete10)
+
 		assert(nuevoCamion.pedidos.size == 4)
 		assert(nuevoCamion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 0
 	}
@@ -141,14 +137,12 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 		
 		var nuevoCamion = desp.agregarPedido(camion, paquete10)
 		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
-//		camion.asignarPaquete(paquete10)
-//		camion.asignarPaquete(paquete20)
+
 		assert(nuevoCamion.pedidos.size == 2)
 		assert( nuevoCamion.capacidad == 15) //45 - 10 - 20 = 15
 
 		intercept[TransporteSinCapacidad]{
-		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteConMuchoVolumen)
-//		  camion.asignarPaquete(paqueteConMuchoVolumen) //excedo la capacidad
+		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteConMuchoVolumen) //excedo la capacidad
 		}
 		
 		assert(nuevoCamion.capacidad == 15)
@@ -157,238 +151,221 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "no llevar paquetes de destinos diferentes" in {
 		var nuevoCamion = desp.agregarPedido(camion, paquete1)
-//		camion.asignarPaquete(paquete1)
 		
 		intercept[PaquetesDestinoErroneo] {
-		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteInvertido1)
-//		  camion.asignarPaquete(paqueteInvertido1) //asigno paquetes iniciales con destino distinto
+		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteInvertido1)//asigno paquetes iniciales con destino distinto
 	    }
 	   
 		assert(nuevoCamion.pedidos.size == 1)
 
 		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete2)
-//		camion.asignarPaquete(paquete2)
 		assert(nuevoCamion.pedidos.size == 2)
 		assert(nuevoCamion.capacidad == 42) //45 - 1 - 2 = 42
 	}
 	
 	it should "llevar tipos de paquetes especificados" in {
-//	  var nuevaFurgoneta
 	  intercept[PaqueteTipoInvalido]{
-	    desp.agregarPedido(furgoneta, paqueteUrgenteLiviano)
-//	    furgoneta.asignarPaquete(paqueteUrgenteLiviano) //no puede llevar paquetes fragiles ni urgentes
+	    desp.agregarPedido(furgoneta, paqueteUrgenteLiviano)//no puede llevar paquetes fragiles ni urgentes
 	  }
 	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
-//	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
 	  intercept[PaqueteTipoInvalido]{
-	    desp.agregarPedido(nuevaFurgoneta, paqueteFragil)
-//	    furgoneta.asignarPaquete(paqueteFragil) //aun no puede enviar el paquete fragil
+	    desp.agregarPedido(nuevaFurgoneta, paqueteFragil)//aun no puede enviar el paquete fragil
 	  }
 	  nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente, Fragil))
 	  nuevaFurgoneta = desp.agregarPedido(nuevaFurgoneta, paqueteUrgenteLiviano)
 	  nuevaFurgoneta = desp.agregarPedido(nuevaFurgoneta, paqueteFragil)
-//	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente, Fragil)
-//	  furgoneta.asignarPaquete(paqueteUrgenteLiviano)
-//	  furgoneta.asignarPaquete(paqueteFragil)
+
 	  assert(nuevaFurgoneta.pedidos.size == 2)
 	}
 	
-//	it should "calcular costo del envio" in {
-//
-//	  camion.asignarPaquete(paquete10)
-//	  
-//	  assert(camion.costoEnvio == 10)
-//	}
-//	
-//	it should "calcular costo con adicionales" in {
-//
-//	  camion.asignarPaquete(paquete1)
-//	  
-//	  assert(camion.costoEnvioConAdicionales === 10.22 +- 0.01)
-//	}
-//	
-//	it should "calcular la ganancia de un envio" in {
-//
-//	  camion.asignarPaquete(paquete10)
-//	  camion.asignarPaquete(paquete20)
-//
-//	  SistemaExterno.distanciaTerrestre = 0.5
-//	  SistemaExterno.cantidadPeajes  = 2
-//	  
-//	  assert(camion.gananciaEnvio == 66)
-//	}
-//	
-//	it should "calcular la ganancia de un envio con distintos seguimientos" in {
-//
-//	  camion.asignarPaquete(paquete10)
-//	  camion.asignarPaquete(paquete20)
-//	  camion.servicioExtra = Some(camion.seguimientoSatelital)
-//	  SistemaExterno.distanciaTerrestre = 0.5
-//	  SistemaExterno.cantidadPeajes  = 2
-//	  
-//	  assert(camion.gananciaEnvio == 65.5)//160 - (20 + 100*0.5 + 2*12 + 0.5)
-//
-//	  camion.servicioExtra = Some(camion.seguimientoSatelitalConVideo)
-//	  
-//	  assert(camion.gananciaEnvio === 62.25 +- 0.01)
-//	}
-//	
-//	it should "calcular el costo de un envio dependiendo la infraestructura" in {
-//	  camion.asignarPaquete(paquete10)
-//	  camion.asignarPaquete(paquete20)
-//	  camion.infraestructura = Some(camion.sustanciasPeligrosas)
-//	  SistemaExterno.distanciaTerrestre = 0.5
-//	  SistemaExterno.cantidadPeajes  = 2
-//	  
-//	  assert(camion.costoEnvioConAdicionales == 694)//20 + 100*0.5 + 2*12 + 600
-//	
-//	  camion.infraestructura = Some(camion.animales)
-//	  //distancia menor a 100km
-//	  SistemaExterno.distanciaTerrestre = 50
-//	  assert(camion.costoEnvioConAdicionales == 5094)//20 + 100*50 + 2*12 + 50
-//	  
-//	  //distancia menor a 200km
-//	  SistemaExterno.distanciaTerrestre = 130
-//	  assert(camion.costoEnvioConAdicionales == 13130)//20 + 100*130 + 2*12 + 86
-//	  
-//	  //distancia mayor a 200km
-//	  SistemaExterno.distanciaTerrestre = 240
-//	  assert(camion.costoEnvioConAdicionales == 24181)//20 + 100*240 + 2*12 + 137
-//	}
+	it should "calcular costo del envio" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
+	  
+	  assert(nuevoCamion.costoEnvio == 110)// 10 + 100
+	}
+	
+	it should "calcular costo con adicionales" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete1)
+	  
+	  assert(nuevoCamion.costoEnvio === 112.22 +- 0.01)//10 + 100 * (1+ (45-44)/45)
+	}
+	
+	it should "calcular la ganancia de un envio" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
+	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
+	  
+	  assert(nuevoCamion.costoEnvio == 94)// 10+10 + 100 * 0.5 + 2*12
+	  assert(nuevoCamion.gananciaEnvio == 66) // 160 - 94
+	}
+	
+	it should "calcular la ganancia de un envio con distintos seguimientos" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
+	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+
+	  nuevoCamion = desp.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelital))
+
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
+	  assert(nuevoCamion.costoEnvio == 94.5)// 10 + 10 + 100*0.5 + 2*12 + 1*0.5
+	  assert(nuevoCamion.gananciaEnvio == 65.5)//160 - 94.5
+	  
+	  nuevoCamion = desp.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelitalConVideo))
+
+	  assert(nuevoCamion.costoEnvio == 97.74000000000001)// 10 + 10 + 100*0.5 + 2*12 + 1*3.74
+	  assert(nuevoCamion.gananciaEnvio === 62.26 +- 0.01)//160 - 97.74
+	}
+	
+	it should "calcular el costo de un envio dependiendo la infraestructura" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
+	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+
+	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
+
+	  SistemaExterno.distanciaTerrestre = 0.5
+	  SistemaExterno.cantidadPeajes  = 2
+	  
+	  assert(nuevoCamion.costoEnvio == 694)//20 + 100*0.5 + 2*12 + 600
+	
+	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(Animales))
+
+	  //distancia menor a 100km
+	  SistemaExterno.distanciaTerrestre = 50
+	  
+	  assert(nuevoCamion.costoEnvio == 5094)//20 + 100*50 + 2*12 + 50
+	  
+	  //distancia menor a 200km
+	  SistemaExterno.distanciaTerrestre = 130
+	  assert(nuevoCamion.costoEnvio == 13130)//20 + 100*130 + 2*12 + 86
+	  
+	  //distancia mayor a 200km
+	  SistemaExterno.distanciaTerrestre = 240
+	  assert(nuevoCamion.costoEnvio == 24181)//20 + 100*240 + 2*12 + 137
+	}
 	
 	"Un camion" should "poder llevar paquetes con refrigeracion" in {
 	  var nuevoCamion = desp.agregarPedido(camion, paqueteConRefrigeracion)
 	  assert(nuevoCamion.pedidos.size == 1)
 	}
 	
-//	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
-//	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
-//	  camion.asignarPaquete(paqueteUrgentePesado)
-//	  camion.asignarPaquete(paqueteUrgentePesado)
-//	  camion.infraestructura = Some(camion.sustanciasPeligrosas)
-//	  
-//	  assert(camion.capacidad == 5)
-//	  assert(camion.costoEnvio == 40)
-//	  assert(camion.costoSustanciasUrgentes === 2.66 +- 0.01)
-//	  assert(camion.costoInfraestructura == 600)
-//	  assert(camion.costosAdicionales === 602.66 +- 0.01)
-//	  assert(camion.costoEnvioConAdicionales === 642.66 +- 0.01)
-//	}
-//	
-//	it should "calcular costo de ultima semana del mes yendo a casa central" in {
-//	  camion.asignarPaquete(paquete10CasaCentral)
-//	  SistemaExterno.fechaActual.setDate(24)
-//	  
-//	  assert(camion.costoEnvio == 10)
-//	  assert(camion.sucursalDestino.esCasaCentral)
-//	  assert(camion.costoAdicionalCasaCentral == 0.2)
-//	  assert(camion.costoEnvioConAdicionales == 10.2)
-//	  
-//	}
-//	
-//	it should "calcular costo con adicional por volumen no aceptable" in {
-//
-//	  camion.asignarPaquete(paquete1)
-//	  
-//	  assert(camion.costoEnvio == 10) 
-//	  assert(camion.volumen - camion.capacidad == 1)
-//	  assert(camion.volumen == 45)
-//	  assert(camion.costoVolumen === 0.22 +- 0.01)
-//	}
+	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
+	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteUrgentePesado)
+	  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteUrgentePesado)
+	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
+	  
+	  assert(nuevoCamion.capacidad == 5)
+	  assert(nuevoCamion.costoEnvio == 742.6666666666666)// 40 + 100 + 3*(40/45) + 600
+	}
+	
+	it should "calcular costo de ultima semana del mes yendo a casa central" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete10CasaCentral)
+
+	  SistemaExterno.fechaActual.setDate(24)
+	  
+	  assert(nuevoCamion.costoEnvio == 112.2)// (10+100) * 1.02
+	  assert(nuevoCamion.sucursalDestino.esCasaCentral)
+	}
+	
+	it should "calcular costo con adicional por volumen no aceptable" in {
+	  var nuevoCamion = desp.agregarPedido(camion, paquete1)
+	  
+	  assert(nuevoCamion.costoEnvio == 112.22222222222221) //10 + 100 * (1 + (45-44)/45)
+	  assert(nuevoCamion.volumen - nuevoCamion.capacidad == 1)
+	  assert(nuevoCamion.volumen == 45)
+	}
 	
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
-//	  var nuevoAvion = desp.agregarPedido(avion, paquete1)//avion.asignarPaquete(paquete1)
+
 	  SistemaExterno.distanciaAerea = 900.0
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
 	    desp.agregarPedido(avion, paquete1)
-//	    nuevoAvion.gananciaEnvio
 	  }
 	  
 	  SistemaExterno.distanciaAerea = 1000.0
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
 	    desp.agregarPedido(avion, paquete1)
-//	    avion.gananciaEnvio
 	  }	  
 	  
 	  SistemaExterno.distanciaAerea = 1100.0
-	  
-//	  assert(avion.gananciaEnvio == -1649950.0)
+
 	}
 	
 	it should "no poder llevar paquetes con refrigeracion" in {
 	  intercept[PaqueteTipoInvalido]{
 	    desp.agregarPedido(avion, paqueteConRefrigeracion)
-//	    avion.asignarPaquete(paqueteConRefrigeracion)
 	  }
 	}
 	
-//	it should "pagar 10% de impuesto si hace viajes internacionales" in {
-//	  SistemaExterno.distanciaAerea = 1500
-//	  avion.asignarPaquete(paquete50nacional)
-//	  assert(avion.costoEnvio == 750010)
-//	  assert(avion.costosAdicionales == 0)
-//	  avion.hacerEnvio
-//	  avion.asignarPaquete(paquete50internacional)
-//	  assert(avion.costoEnvio == 750010)
-//	  assert(avion.costosAdicionales == 75001)
-//	}
+	it should "pagar 10% de impuesto si hace viajes internacionales" in {
+	  SistemaExterno.distanciaAerea = 1500
+	  var nuevoAvion = desp.agregarPedido(avion, paquete50nacional)
+
+	  assert(nuevoAvion.costoEnvio == 750010)
+	  nuevoAvion = desp.vaciarTransporte(nuevoAvion)
+	  nuevoAvion = desp.agregarPedido(avion, paquete50internacional)
+
+	  assert(nuevoAvion.costoEnvio == 825011.0000000001)
+	}
 	
-//	"Las estadisticas" should "ser parametrizables" in {
-//	  
-//	  val distanciaTotalEnvios : funcionCalculo = { envios => 
-//      (for {
-//    	  envio <- envios
-//      	} yield envio.distanciaRecorrida).sum
-//      }
-//	  
-//	  SistemaExterno.distanciaTerrestre = 200
-//	  
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  flechaBus.agregarSucursal(sucursal3000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//
-//	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,200))
-//	  
-//	  SistemaExterno.distanciaTerrestre = 500
-//	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
-//	  sucursal1000.reemplazar(camion, nuevoCamion)
-////	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
-//	  cliente.generarPaquete(30, Urgente)
-//	  cliente.pedirEnvio
-//
-//	  nuevoCamion.hacerEnvio
-//
-//	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
-//	  
-//	  
-//	  SistemaExterno.distanciaTerrestre = 1500
-//	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
-////	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
-//	  cliente.sucursalOrigen = sucursal3000
-//	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
-//	  cliente.sucursalDestino = sucursal1000
-//	  cliente.generarPaquete(2, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  cliente.generarPaquete(4, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
-//	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal3000,3000)) // (30+10)/2
-//	}
+	"Las estadisticas" should "ser parametrizables" in {
+	  
+	  val distanciaTotalEnvios : funcionCalculo = { envios => 
+      (for {
+    	  envio <- envios
+      	} yield envio.distanciaRecorrida).sum
+      }
+	  
+	  SistemaExterno.distanciaTerrestre = 200
+	  
+	  flechaBus.agregarSucursal(sucursal1000)
+	  flechaBus.agregarSucursal(sucursal3000)
+	  estadisticas agregarCompania(flechaBus)
+	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  sucursal1000.despacharEnvios
+
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,200))
+	  
+	  SistemaExterno.distanciaTerrestre = 500
+	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  sucursal1000.reemplazar(camion, nuevoCamion)
+//	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+
+	  sucursal1000.despacharEnvios
+	 
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
+	  
+	  
+	  SistemaExterno.distanciaTerrestre = 1500
+	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+//	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  sucursal3000.despacharEnvios
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  sucursal3000.despacharEnvios
+	  
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal3000,4500)) // (30+10)/2
+	}
 //	
 //	it should "mostrar costo promedio de las sucursales en analisis" in {
 //	  flechaBus.agregarSucursal(sucursal1000)

@@ -7,13 +7,17 @@ trait Transporte {
 	
 	val tipoDePaquetesValidos: List[Caracteristica]
 	val sistemaExterno : CalculadorDistancia
-	val pedidos: List[Paquete] = List()
+	val pedidos: List[Paquete]
 	
 	def costoBase: Double
 	def costo: Double = costoBase + costosAdicionales
 	def costosAdicionales: Double
 	def capacidad: Double = volumen - pedidos.map(_.volumen).sum
 		
+	def puedeLlevar(nuevoPaquete: Paquete): Boolean = {
+	  tipoDePaquetesValidos.contains(nuevoPaquete.caracteristica) && (capacidad > nuevoPaquete.volumen) && !(pedidos.size != 0 && (nuevoPaquete.sucursalDestino != pedidos.head.sucursalDestino))
+	}
+	
 	def validar(nuevoPaquete: Paquete): Boolean = {
 	  validarTipo(nuevoPaquete)
 	  validarCapacidad(nuevoPaquete)
@@ -45,6 +49,16 @@ trait Transporte {
 	  sucursalOrigen.descargarEnvios(envio)
 	  sucursalDestino.descargarEnvios(envio)
 	}
+	//agregados para los test
+	def costoEnvio: Double = {
+	  var envio: Envio = Envio(sucursalOrigen,sucursalDestino,pedidos,this,sistemaExterno.fechaActual)
+	  envio.costoConAdicionales
+	}
+	
+	def gananciaEnvio: Double = {
+	  var envio: Envio = Envio(sucursalOrigen,sucursalDestino,pedidos,this,sistemaExterno.fechaActual)
+	  envio.ganancia
+	}
 		
 }
 
@@ -53,7 +67,7 @@ case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,Nece
   val costoKm: Double = 100
   val velocidad: Double = 60
   
-  override def multiplicadorVolumen: Double = {
+  def multiplicadorVolumen: Double = {
     if(!volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral) 1 + ((volumen - capacidad)/ volumen) else 1
   }
   
@@ -61,9 +75,9 @@ case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,Nece
     costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
   }
   
-  def costo : Double = costoBase + costosAdicionales
+//  def costo : Double = costoBase + costosAdicionales
   
-  override def costosAdicionales : Double = costoPeajes + costoExtras
+  override def costosAdicionales : Double = costoPeajes + costoExtras + costoSustanciasUrgentes
   
   def costoExtras : Double = costoSatelital + costoInfraestructura
   
@@ -76,12 +90,24 @@ case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,Nece
   
   def costoInfraestructura: Double = {
     infraestructura match {
-      case Some(x) => x.costoAdicional(distanciaEntre(sucursalOrigen, sucursalDestino) * 2)
+      case Some(x) => x.costoAdicional(distanciaEntre(sucursalOrigen, sucursalDestino))
       case None => 0.0
     }
   }
   
   def costoPeajes : Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen , sucursalDestino) * 12
+  
+  def costoSustanciasUrgentes : Double = {
+    infraestructura match {
+      case Some(SustanciasPeligrosas) => costoAdicionalPaquetesUrgentes
+      case _ => 0.0
+    }
+  }
+  
+  def costoAdicionalPaquetesUrgentes : Double = {
+    var volUrgentes : Double = (for { paquete <- paquetesUrgentes} yield paquete.volumen).sum
+    3 * (volUrgentes/ volumen)
+  }
 }
 
 case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sistemaExterno : CalculadorDistancia, pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
@@ -89,11 +115,11 @@ case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal),
   val costoKm: Double = 40
   val velocidad: Double = 80
   
-  override def multiplicadorVolumen: Double = if(!volumenOcupadoAceptable && paquetesUrgentes.size < 3) 2 else 1
+  def multiplicadorVolumen: Double = if(!volumenOcupadoAceptable && paquetesUrgentes.size < 3) 2 else 1
   
   override def costoBase: Double = costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
   
-  def costo : Double = costoBase + costosAdicionales
+//  def costo : Double = costoBase + costosAdicionales
   
   override def costosAdicionales : Double = costoPeajes + costoExtras
   
@@ -114,18 +140,7 @@ case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal),
   }
   
   def costoPeajes : Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen , sucursalDestino) * 6
-  
-  def costoSustanciasUrgentes : Double = {
-    infraestructura match {
-      case Some(SustanciasPeligrosas) => costoAdicionalPaquetesUrgentes
-      case _ => 0.0
-    }
-  }
-  
-  def costoAdicionalPaquetesUrgentes : Double = {
-    var volUrgentes : Double = (for { paquete <- paquetesUrgentes} yield paquete.volumen).sum
-    3 * (volUrgentes/ volumen)
-  }
+
 }
 
 case class Avion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sistemaExterno : CalculadorDistancia, pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
@@ -139,11 +154,11 @@ case class Avion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sis
 	  sistemaExterno.distanciaAereaEntre(origen, destino)
   }
   
-  override def multiplicadorVolumen: Double = if(!volumenOcupadoAceptable) 3 else 1
+  def multiplicadorVolumen: Double = if(!volumenOcupadoAceptable) 3 else 1
   
   override def costoBase = costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
   
-  def costo: Double = costoBase + costosAdicionales
+//  def costo: Double = costoBase + costosAdicionales
   
   override def costosAdicionales: Double = costoExtras
   

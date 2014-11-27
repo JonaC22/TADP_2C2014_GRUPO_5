@@ -21,13 +21,14 @@ case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: 
   //costo con adicionales
   def costoConAdicionales: Double = {
     transporte match {
-      case Camion(_,_,_,_,_) => if(sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 1.2 else costo
+      case Camion(_,_,_,_,_) => if(sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 1.02 else costo
       case Avion(_,_,_,_,_) => {
         if(sucursalDestino.esCasaCentral && fecha.getDate() > 21 && sucursalDestino.pais != sucursalOrigen.pais) (costo * 1.1)* 0.80 //10% impuestos y 20% descuento
         else if (sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 0.80 //20% de descuento
-        else costo * 1.1 //10% impuesto
+        else if(sucursalDestino.pais != sucursalOrigen.pais) costo * 1.1 //10% impuesto
+        else costo
       }
-      case _ => transporte.costo
+      case _ => costo
     }
   }
   
@@ -35,6 +36,6 @@ case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: 
   
   def ganancia: Double = precio - costo
   
-  def distanciaRecorrida : Double = transporte.distanciaEntre(sucursalOrigen, sucursalDestino)
+  val distanciaRecorrida : Double = transporte.distanciaEntre(sucursalOrigen, sucursalDestino)
   
 }
