@@ -321,11 +321,11 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
       }
 	  
 	  SistemaExterno.distanciaTerrestre = 200
-	  
+	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  sucursal1000.transportes = sucursal1000.transportes :+ camion
+	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
 	  
@@ -334,9 +334,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,200))
 	  
 	  SistemaExterno.distanciaTerrestre = 500
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
-	  sucursal1000.reemplazar(camion, nuevoCamion)
-//	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
+
 	  cliente.generarPaquete(30, Urgente)
 	  cliente.pedirEnvio
 
@@ -347,24 +345,25 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  SistemaExterno.distanciaTerrestre = 1500
 	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
-//	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
+
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
 	  cliente.sucursalDestino = sucursal1000
 	  cliente.generarPaquete(2, Normal)
 	  cliente.pedirEnvio
+
 	  cliente.generarPaquete(3, Urgente)
 	  cliente.pedirEnvio
-	  
+
 	  sucursal3000.despacharEnvios
-	  
+	  	  
 	  cliente.generarPaquete(4, Normal)
 	  cliente.pedirEnvio
 	  
 	  sucursal3000.despacharEnvios
 	  
 	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal1000,700)) // (10+20)/2
-	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal3000,4500)) // (30+10)/2
+	  assert(estadisticas.estadisticasSucursales(distanciaTotalEnvios).contains(sucursal3000,3000)) // (30+10)/2
 	}
 //	
 //	it should "mostrar costo promedio de las sucursales en analisis" in {
