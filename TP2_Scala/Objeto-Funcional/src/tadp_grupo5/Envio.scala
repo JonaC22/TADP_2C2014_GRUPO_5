@@ -35,4 +35,6 @@ case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: 
   
   def ganancia: Double = precio - costo
   
+  def distanciaRecorrida : Double = transporte.distanciaEntre(sucursalOrigen, sucursalDestino)
+  
 }
