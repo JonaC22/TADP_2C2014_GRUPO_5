@@ -85,7 +85,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  estadisticas.companiasEnEstudio = List()
 	  estadisticas.restriccionesEnvio = Set()
 	  estadisticas.restriccionesPaquete = Set()
-	  estadisticas.restriccionesTransporte  = Set()
+	  estadisticas.restriccionesEnvio  = Set()
 	}
     
 	"Una sucursal" should "tener capacidad" in {
@@ -657,7 +657,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "filtrar envios por una restriccion de tipo de transporte" in {
 	  
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorCamion())
 	  flechaBus.agregarSucursal(sucursal1000)
 	  estadisticas agregarCompania(flechaBus)
 	  sucursal1000.transportes = sucursal1000.transportes :+ camion
@@ -668,7 +668,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,70)) //80 - 10 = 70
 	  
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorFurgoneta())
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,0))
 	}
@@ -713,11 +713,11 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  avion.hacerEnvio //el avion hizo un envio
 	  
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,6))
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorCamion())
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,2))
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorFurgoneta())
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,3))
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorAvion())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorAvion())
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,1))
 	}
 	
@@ -751,17 +751,17 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  furgoneta.hacerEnvio //la furgoneta hizo los envios la fecha 27
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 450)
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion()) //quiero filtrar por camiones
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorCamion()) //quiero filtrar por camiones
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 180)
 	  
 	  restriccionFecha.fechaHasta.setDate(25) //tomo las facturaciones hechas hasta el 25, la furgoneta no deberia incluirse
-	  estadisticas.restriccionesTransporte = Set()
+	  estadisticas.restriccionesEnvio = Set()
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorCamion())
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 270)
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta())
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorFurgoneta())
 	  assert(estadisticas.estadisticasFacturacionTotalTransportes == 0)
 	}
 	
@@ -790,10 +790,10 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,70047.5))
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,14.583333333333334))
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorCamion()) //quiero filtrar por camiones
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorCamion()) //quiero filtrar por camiones
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,100075))
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,16.666666666666668))
-	  estadisticas.restriccionesTransporte = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
+	  estadisticas.restriccionesEnvio = Set(RestriccionPorFurgoneta()) //quiero filtrar por furgonetas
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,40020))
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,12.5))
 	}

@@ -12,28 +12,12 @@ class Estadisticas {
  
   var companiasEnEstudio : List[Compania] = List()
   var restriccionesEnvio : Set[RestriccionEnvio] = Set()
-  var restriccionesTransporte : Set[RestriccionTransporte] = Set()
   var restriccionesPaquete : Set[RestriccionPaquete] = Set()
-  
-  val obtenerEnviosTransporte : Transporte => List[Envio] = {
-    transporte =>
-    for {
-      envio <- transporte.historialEnvios if aplicarRestriccionesEnvios(envio)
-    } yield envio
-  }
-  
-  val obtenerTransportes : Sucursal => List[Transporte] = {
-    sucursal =>
-    for {
-      transporte <- sucursal.transportes if aplicarRestriccionesTransportes(transporte)
-    } yield transporte
-  }
   
   val obtenerEnviosSucursal : Sucursal => List[Envio] = {
     sucursal =>
     for {
-    	transporte <- obtenerTransportes(sucursal)
-    	envio <- obtenerEnviosTransporte(transporte)
+    	envio <- sucursal.enviosRealizados if aplicarRestriccionesEnvios(envio)
     } yield envio      
   }
   
@@ -41,7 +25,7 @@ class Estadisticas {
     sucursal =>
     for {
       envio <- obtenerEnviosSucursal(sucursal)
-      paquete <- envio.paquetesEnviados if aplicarRestriccionesPaquete(paquete)
+      paquete <- envio.paquetes if aplicarRestriccionesPaquete(paquete)
     } yield paquete
   }
   
@@ -73,13 +57,13 @@ class Estadisticas {
     envios =>
       (for {
     	  envio <- envios
-      	} yield envio.gananciaEnvio).sum
+      	} yield envio.ganancia).sum
   }
   
   val costosEnviosSucursal : funcionCalculo = {
     envios => (for {
       envio <- envios
-      } yield envio.costoEnvioConAdicionales).sum
+      } yield envio.costoConAdicionales).sum
   }
   
   val cantidadViajesSucursal : funcionCalculo = _.size
@@ -124,15 +108,11 @@ class Estadisticas {
   def estadisticasPromedioTiempos : List[tuplaSucursalValue] = estadisticasPromedioSucursales(tiempoTotalViajesSucursal)
   
   def obtenerPaquetes (envios : List[Envio]): List[Paquete] = {
-    envios.flatMap(_.paquetesEnviados).filter(x => aplicarRestriccionesPaquete(x))
+    envios.flatMap(_.paquetes).filter(x => aplicarRestriccionesPaquete(x))
   }
   
   def aplicarRestriccionesEnvios(envio : Envio) : Boolean = {
     restriccionesEnvio.forall(_.aplicarRestriccion(envio))
-  }
-  
-  def aplicarRestriccionesTransportes(transporte : Transporte) : Boolean = {
-    restriccionesTransporte.forall(_.aplicarRestriccion(transporte))
   }
   
   def aplicarRestriccionesPaquete(paquete : Paquete) : Boolean = {
@@ -148,31 +128,27 @@ trait RestriccionEnvio {
   def aplicarRestriccion(envio : Envio) : Boolean
 }
 
-trait RestriccionTransporte {
-  def aplicarRestriccion(transporte : Transporte) : Boolean
-}
-
-case class RestriccionPorCamion() extends RestriccionTransporte{
-  def aplicarRestriccion(transporte : Transporte) : Boolean = {
-    transporte match {
+case class RestriccionPorCamion() extends RestriccionEnvio{
+  def aplicarRestriccion(envio : Envio) : Boolean = {
+    envio.transporte match {
     case _ : Camion => true
     case _ => false
     }
   }
 }
 
-case class RestriccionPorFurgoneta() extends RestriccionTransporte{
-  def aplicarRestriccion(transporte : Transporte) : Boolean = {
-    transporte match {
+case class RestriccionPorFurgoneta() extends RestriccionEnvio{
+  def aplicarRestriccion(envio : Envio) : Boolean = {
+    envio.transporte match {
     case _ : Furgoneta => true
     case _ => false
     }
   }
 }
 
-case class RestriccionPorAvion() extends RestriccionTransporte{
-  def aplicarRestriccion(transporte : Transporte) : Boolean = {
-    transporte match {
+case class RestriccionPorAvion() extends RestriccionEnvio{
+  def aplicarRestriccion(envio : Envio) : Boolean = {
+    envio.transporte match {
     case _ : Avion => true
     case _ => false
     }
