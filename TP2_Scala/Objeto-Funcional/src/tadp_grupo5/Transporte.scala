@@ -133,7 +133,7 @@ case class Avion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sis
   val costoKm: Double = 500
   val velocidad: Double = 500
   
-  override def validarDestino(pedido: Paquete) = super.validarDestino(pedido) && distanciaEntre(pedido.sucursalOrigen ,pedido.sucursalDestino) > 1000
+  override def validarDestino(pedido: Paquete) = if(super.validarDestino(pedido) && distanciaEntre(pedido.sucursalOrigen ,pedido.sucursalDestino) > 1000) true else throw new EnvioConDistanciaMenorA1000KM()
   
   override def distanciaEntre(origen: Sucursal, destino: Sucursal): Double = {
 	  sistemaExterno.distanciaAereaEntre(origen, destino)

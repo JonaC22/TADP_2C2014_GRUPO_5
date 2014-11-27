@@ -18,5 +18,14 @@ case class Despachante() {
 			case _ => throw new TransporteInvalido()
 		}
 	}
+	
+	def modificarTiposValidos(unTransporte: Transporte, tipos: List[Caracteristica]) = {
+	  unTransporte match {
+			case Camion(_,_,_,_,_) => unTransporte.asInstanceOf[Camion].copy(tipoDePaquetesValidos = tipos)
+			case Furgoneta(_,_,_,_,_) => unTransporte.asInstanceOf[Furgoneta].copy(tipoDePaquetesValidos = tipos)
+			case Avion(_,_,_,_,_) => unTransporte.asInstanceOf[Avion].copy(tipoDePaquetesValidos = tipos)
+			case _ => throw new TransporteInvalido()
+		}
+	}
 
 }

@@ -16,11 +16,17 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def esCasaCentral: Boolean = false
   
-  def asignarPaquete(paquete: Paquete) = {//faltaria buscar el transporte que se modifica y reemplazarlo por el nuevo
+  def reemplazar(transporte1: Transporte, transporte2: Transporte) = {// reemplazo transporte1 por transporte2
+    var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporte1))//elimino el transporte1
+    transportes = filtrados :+ transporte2 //agrego transporte2
+  }
+  
+  
+  def asignarPaquete(paquete: Paquete) = {
     var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
     var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
-    if(!cargadosValidos.isEmpty)  despachante.agregarPedido(cargadosValidos.head, paquete)
-	else if(!vaciosValidos.isEmpty) despachante.agregarPedido(vaciosValidos.head, paquete)
+    if(!cargadosValidos.isEmpty)  {var trans: Transporte = despachante.agregarPedido(cargadosValidos.head, paquete); reemplazar(cargadosValidos.head, trans)}
+	else if(!vaciosValidos.isEmpty) {var trans: Transporte = despachante.agregarPedido(vaciosValidos.head, paquete); reemplazar(vaciosValidos.head, trans)}
 	else pedidosPendientes = pedidosPendientes :+ paquete
   }
   
@@ -47,7 +53,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     if(envio.sucursalOrigen  == this)
     	enviosRealizados = enviosRealizados :+ envio
     	var unTransporte = despachante.vaciarTransporte(envio.transporte)
-    	//faltaria buscar el transporte cargado y reemplazarlo por el vacio en la lista de transportes
+    	reemplazar(envio.transporte, unTransporte)
   }
   
   def descargarEnvio(pedido : Paquete){
@@ -69,6 +75,11 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def filtrarValidos : (Paquete, List[Transporte], (Transporte,Paquete) => Boolean) => List[Transporte] = {
     (paquete,trans,f) => for { transporte <- trans if(f(transporte,paquete))} yield transporte
+  }
+  
+  def despacharEnvios = {
+    filtrarTransportes(filtroCargados).foreach(_.hacerEnvio)
+    
   }
 }
 
