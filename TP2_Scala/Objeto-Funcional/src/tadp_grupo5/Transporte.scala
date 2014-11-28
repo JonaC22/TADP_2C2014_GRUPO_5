@@ -46,8 +46,8 @@ trait Transporte {
 	
 	def hacerEnvio {
 	  var envio: Envio = Envio(sucursalOrigen,sucursalDestino,pedidos,this,sistemaExterno.fechaActual)
-	  sucursalOrigen.descargarEnvios(envio)
-	  sucursalDestino.descargarEnvios(envio)
+	  sucursalOrigen.descargarEnvio(envio)
+	  sucursalDestino.descargarEnvio(envio)
 	}
 	//agregados para los test
 	def costoEnvio: Double = {

@@ -5,7 +5,6 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   var paquetesPorSalir : List[Paquete] = List()
   var paquetesPorEntrar : List[Paquete] = List()
   var transportes : List[Transporte] = List()
-  
   var enviosRealizados: List [Envio] = List()
   var pedidosPendientes: List [Paquete] = List()
   
@@ -13,9 +12,9 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def esCasaCentral: Boolean = false
   
-  def actualizarTransportes(transporteAnterior: Transporte, transporteNuevo: Transporte) = {// reemplazo transporte1 por transporte2
-    var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporteAnterior))//elimino el transporte1
-    transportes = filtrados :+ transporteNuevo //agrego transporte2
+  def actualizarTransportes(transporteAnterior: Transporte, transporteNuevo: Transporte) = { //reemplazo la referencia vieja del transporte por una nueva
+    var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporteAnterior))//elimino el estado anterior del transporte
+    transportes = filtrados :+ transporteNuevo //agrego el nuevo estado del transporte
   }
   
   def asignarPaquete(paquete: Paquete) = {
@@ -45,8 +44,8 @@ case class Sucursal (volumenDeposito : Int, pais : String){
  
   def validarCapacidad(paquete : Paquete) = if (capacidad < paquete.volumen) throw new SucursalSinCapacidad()
   
-  def descargarEnvios(envio: Envio) = {
-    for (pedido <- envio.paquetes) descargarEnvio(pedido)
+  def descargarEnvio(envio: Envio) = {
+    for (pedido <- envio.paquetes) descargarPedido(pedido)
     if(envio.sucursalOrigen  == this){
     	enviosRealizados = enviosRealizados :+ envio
     	var unTransporte = Despachante.vaciarTransporte(envio.transporte)
@@ -54,7 +53,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     }
   }
   
-  def descargarEnvio(pedido : Paquete){
+  def descargarPedido(pedido : Paquete){
     if(pedido.sucursalDestino  == this){
       paquetesPorEntrar = paquetesPorEntrar.filterNot(_== pedido) 
     } else paquetesPorSalir = paquetesPorSalir.filterNot(_== pedido)

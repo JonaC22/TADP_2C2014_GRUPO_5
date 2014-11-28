@@ -205,7 +205,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  nuevoCamion = Despachante.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelitalConVideo))
 
-	  assert(nuevoCamion.costoEnvio == 97.74000000000001)// 10 + 10 + 100*0.5 + 2*12 + 1*3.74
+	  assert(nuevoCamion.costoEnvio === 97.74 +- 0.01)// 10 + 10 + 100*0.5 + 2*12 + 1*3.74
 	  assert(nuevoCamion.gananciaEnvio === 62.26 +- 0.01)//160 - 97.74
 	}
 	
@@ -248,7 +248,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  nuevoCamion = Despachante.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
 	  
 	  assert(nuevoCamion.capacidad == 5)
-	  assert(nuevoCamion.costoEnvio == 742.6666666666666)// 40 + 100 + 3*(40/45) + 600
+	  assert(nuevoCamion.costoEnvio === 742.66 +- 0.01)// 40 + 100 + 3*(40/45) + 600
 	}
 	
 	it should "calcular costo de ultima semana del mes yendo a casa central" in {
@@ -263,7 +263,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	it should "calcular costo con adicional por volumen no aceptable" in {
 	  var nuevoCamion = Despachante.agregarPedido(camion, paquete1)
 	  
-	  assert(nuevoCamion.costoEnvio == 112.22222222222221) //10 + 100 * (1 + (45-44)/45)
+	  assert(nuevoCamion.costoEnvio === 112.22 +- 0.01) //10 + 100 * (1 + (45-44)/45)
 	  assert(nuevoCamion.volumen - nuevoCamion.capacidad == 1)
 	  assert(nuevoCamion.volumen == 45)
 	}
@@ -300,7 +300,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  nuevoAvion = Despachante.vaciarTransporte(nuevoAvion)
 	  nuevoAvion = Despachante.agregarPedido(avion, paquete50internacional)
 
-	  assert(nuevoAvion.costoEnvio == 825011.0000000001)
+	  assert(nuevoAvion.costoEnvio === 825011.0 +- 0.01)
 	}
 	
 	"Las estadisticas" should "ser parametrizables" in {
