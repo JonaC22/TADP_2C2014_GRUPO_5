@@ -9,7 +9,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
     type funcionCalculo = List[Envio] => Double
   
 	object SistemaExterno extends CalculadorDistancia {
-		var distanciaTerrestre : Double = 1
+		var distanciaTerrestre : Double = 0
 		var distanciaAerea : Double = 0.0
 		var cantidadPeajes : Int = 0
 		var fechaActual : Date = new Date()
@@ -27,7 +27,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 		}
 	}
     
-    val desp = new Despachante()
+    val desp = Despachante()
     
 	val sucursal10 = new Sucursal(10, "Argentina")
 	val sucursal20 = new Sucursal(20, "Argentina")
@@ -46,10 +46,10 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	val estadisticas = new Estadisticas()
 	
-	val camion = new Camion(sistemaExterno = SistemaExterno)
-	val otroCamion = new Camion(sistemaExterno = SistemaExterno)
-	val avion = new Avion(sistemaExterno = SistemaExterno)
-	val furgoneta = new Furgoneta(sistemaExterno = SistemaExterno)
+	val camion = Camion(SistemaExterno)
+	val otroCamion = Camion(SistemaExterno)
+	val avion = Avion(SistemaExterno)
+	val furgoneta = Furgoneta(SistemaExterno)
 	val transportes = List(camion, otroCamion, avion, furgoneta)
 
 	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
@@ -83,7 +83,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  estadisticas.companiasEnEstudio = List()
 	  estadisticas.restriccionesEnvio = Set()
 	  estadisticas.restriccionesPaquete = Set()
-	  estadisticas.restriccionesEnvio  = Set()
 	}
     
 	"Una sucursal" should "tener capacidad" in {

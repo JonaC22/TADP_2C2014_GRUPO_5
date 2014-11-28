@@ -62,7 +62,7 @@ trait Transporte {
 		
 }
 
-case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,NecesitaRefrigeracion), sistemaExterno : CalculadorDistancia, pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte() {
+case class Camion(sistemaExterno : CalculadorDistancia, tipoDePaquetesValidos: List[Caracteristica] = List(Normal,NecesitaRefrigeracion), pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte() {
   val volumen: Double = 45
   val costoKm: Double = 100
   val velocidad: Double = 60
@@ -108,7 +108,7 @@ case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,Nece
   }
 }
 
-case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sistemaExterno : CalculadorDistancia, pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
+case class Furgoneta(sistemaExterno : CalculadorDistancia, tipoDePaquetesValidos: List[Caracteristica] = List(Normal), pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
   val volumen: Double = 9
   val costoKm: Double = 40
   val velocidad: Double = 80
@@ -139,7 +139,7 @@ case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal),
 
 }
 
-case class Avion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sistemaExterno : CalculadorDistancia, pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
+case class Avion(sistemaExterno : CalculadorDistancia, tipoDePaquetesValidos: List[Caracteristica] = List(Normal), pedidos: List[Paquete] = List(), servicioExtra: Option[ServicioExtra] = None, infraestructura: Option[Infraestructura] = None) extends Transporte(){
   val volumen: Double = 200
   val costoKm: Double = 500
   val velocidad: Double = 500
