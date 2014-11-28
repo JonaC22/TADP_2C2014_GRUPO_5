@@ -13,16 +13,17 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def esCasaCentral: Boolean = false
   
-  def reemplazar(transporte1: Transporte, transporte2: Transporte) = {// reemplazo transporte1 por transporte2
-    var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporte1))//elimino el transporte1
-    transportes = filtrados :+ transporte2 //agrego transporte2
+  def actualizarTransportes(transporteAnterior: Transporte, transporteNuevo: Transporte) = {// reemplazo transporte1 por transporte2
+    var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporteAnterior))//elimino el transporte1
+    transportes = filtrados :+ transporteNuevo //agrego transporte2
   }
   
   def asignarPaquete(paquete: Paquete) = {
-    var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
-    var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
-    if(!cargadosValidos.isEmpty)  {var trans: Transporte = Despachante.agregarPedido(cargadosValidos.head, paquete); reemplazar(cargadosValidos.head, trans)}
-	else if(!vaciosValidos.isEmpty) {var trans: Transporte = Despachante.agregarPedido(vaciosValidos.head, paquete); reemplazar(vaciosValidos.head, trans)}
+    var transportesValidos: List[Transporte] = filtrarTransportesValidos(paquete,transportePuedeLlevar)
+    if(!transportesValidos.isEmpty){
+      var trans: Transporte = Despachante.agregarPedido(transportesValidos.head, paquete)
+      actualizarTransportes(transportesValidos.head, trans)
+    }
 	else pedidosPendientes = pedidosPendientes :+ paquete
   }
   
@@ -49,7 +50,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     if(envio.sucursalOrigen  == this){
     	enviosRealizados = enviosRealizados :+ envio
     	var unTransporte = Despachante.vaciarTransporte(envio.transporte)
-    	reemplazar(envio.transporte, unTransporte)
+    	actualizarTransportes(envio.transporte, unTransporte)
     }
   }
   
@@ -63,17 +64,16 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     transportes.filter(x => f(x))
   }
   
-  val filtroVacios : Transporte => Boolean = _.pedidos.isEmpty
-  val filtroCargados: Transporte => Boolean = !_.pedidos.isEmpty
+  val transporteCargado: Transporte => Boolean = !_.pedidos.isEmpty
   
-  val filtroValidos: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.puedeLlevar(paquete)
+  val transportePuedeLlevar: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.puedeLlevar(paquete)
   
-  def filtrarValidos : (Paquete, List[Transporte], (Transporte,Paquete) => Boolean) => List[Transporte] = {
-    (paquete,trans,f) => for { transporte <- trans if(f(transporte,paquete))} yield transporte
+  def filtrarTransportesValidos : (Paquete, (Transporte,Paquete) => Boolean) => List[Transporte] = {
+    (paquete,f) => for { transporte <- transportes if(f(transporte,paquete))} yield transporte
   }
   
   def despacharEnvios = {
-    filtrarTransportes(filtroCargados).foreach(_.hacerEnvio)
+    filtrarTransportes(transporteCargado).foreach(_.hacerEnvio)
   }
 }
 
