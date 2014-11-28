@@ -1,11 +1,12 @@
 package tadp_grupo5
 
-case class Despachante() {
-	def agregarPedido(unTransporte: Transporte, pedido: Paquete) = {	  
-	  unTransporte match {
-			case _ : Camion => {unTransporte.validar(pedido); unTransporte.asInstanceOf[Camion].copy(pedidos = unTransporte.pedidos :+ pedido)}
-			case _ : Furgoneta => {unTransporte.validar(pedido); unTransporte.asInstanceOf[Furgoneta].copy(pedidos = unTransporte.pedidos :+ pedido)}
-			case _ : Avion => {unTransporte.validar(pedido); unTransporte.asInstanceOf[Avion].copy(pedidos = unTransporte.pedidos :+ pedido)}
+object Despachante {
+	def agregarPedido(unTransporte: Transporte, pedido: Paquete) = {	 
+		unTransporte.validar(pedido)
+		unTransporte match {
+			case _ : Camion => unTransporte.asInstanceOf[Camion].copy(pedidos = unTransporte.pedidos :+ pedido)
+			case _ : Furgoneta => unTransporte.asInstanceOf[Furgoneta].copy(pedidos = unTransporte.pedidos :+ pedido)
+			case _ : Avion => unTransporte.asInstanceOf[Avion].copy(pedidos = unTransporte.pedidos :+ pedido)
 			case _ => throw new TransporteInvalido()
 		}
 	}
@@ -20,7 +21,7 @@ case class Despachante() {
 	}
 	
 	def modificarTiposValidos(unTransporte: Transporte, tipos: List[Caracteristica]) = {
-	  unTransporte match {
+		unTransporte match {
 			case _ : Camion => unTransporte.asInstanceOf[Camion].copy(tipoDePaquetesValidos = tipos)
 			case _ : Furgoneta => unTransporte.asInstanceOf[Furgoneta].copy(tipoDePaquetesValidos = tipos)
 			case _ : Avion => unTransporte.asInstanceOf[Avion].copy(tipoDePaquetesValidos = tipos)
@@ -29,7 +30,7 @@ case class Despachante() {
 	}
 	
 	def modificarServicioExtra(unTransporte: Transporte, servicio: Option[ServicioExtra]) = {
-	  unTransporte match {
+		unTransporte match {
 			case _ : Camion => unTransporte.asInstanceOf[Camion].copy(servicioExtra = servicio)
 			case _ : Furgoneta => unTransporte.asInstanceOf[Furgoneta].copy(servicioExtra = servicio)
 			case _ : Avion => unTransporte.asInstanceOf[Avion].copy(servicioExtra = servicio)
@@ -38,7 +39,7 @@ case class Despachante() {
 	}
 	
 	def modificarInfraestructura(unTransporte: Transporte, inf: Option[Infraestructura]) = {
-	  unTransporte match {
+		unTransporte match {
 			case _ : Camion => unTransporte.asInstanceOf[Camion].copy(infraestructura = inf)
 			case _ : Furgoneta => unTransporte.asInstanceOf[Furgoneta].copy(infraestructura = inf)
 			case _ : Avion => unTransporte.asInstanceOf[Avion].copy(infraestructura = inf)

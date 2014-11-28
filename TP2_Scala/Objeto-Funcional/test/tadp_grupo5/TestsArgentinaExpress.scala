@@ -27,8 +27,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 		}
 	}
     
-    val desp = Despachante()
-    
 	val sucursal10 = new Sucursal(10, "Argentina")
 	val sucursal20 = new Sucursal(20, "Argentina")
     val sucursal30 = new Sucursal(30, "Uruguay")
@@ -50,7 +48,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	val otroCamion = Camion(SistemaExterno)
 	val avion = Avion(SistemaExterno)
 	val furgoneta = Furgoneta(SistemaExterno)
-	val transportes = List(camion, otroCamion, avion, furgoneta)
 
 	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
 	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
@@ -114,14 +111,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	"Un transporte" should "tener capacidad" in {
-		var nuevoCamion = desp.agregarPedido(camion, paquete10)
-		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+		var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
+		nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete20)
 
 		assert(nuevoCamion.pedidos.size == 2)
 		assert(nuevoCamion.capacidad == 15) //45 - 10 - 20 = 15
 		
-		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete5)
-		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete10)
+		nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete5)
+		nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete10)
 
 		assert(nuevoCamion.pedidos.size == 4)
 		assert(nuevoCamion.capacidad == 0) //45 - 10 - 20 - 5 - 10 = 0
@@ -129,14 +126,14 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "no tener capacidad" in {
 		
-		var nuevoCamion = desp.agregarPedido(camion, paquete10)
-		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+		var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
+		nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete20)
 
 		assert(nuevoCamion.pedidos.size == 2)
 		assert( nuevoCamion.capacidad == 15) //45 - 10 - 20 = 15
 
 		intercept[TransporteSinCapacidad]{
-		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteConMuchoVolumen) //excedo la capacidad
+		  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paqueteConMuchoVolumen) //excedo la capacidad
 		}
 		
 		assert(nuevoCamion.capacidad == 15)
@@ -144,49 +141,49 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "no llevar paquetes de destinos diferentes" in {
-		var nuevoCamion = desp.agregarPedido(camion, paquete1)
+		var nuevoCamion = Despachante.agregarPedido(camion, paquete1)
 		
 		intercept[PaquetesDestinoErroneo] {
-		  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteInvertido1)//asigno paquetes iniciales con destino distinto
+		  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paqueteInvertido1)//asigno paquetes iniciales con destino distinto
 	    }
 	   
 		assert(nuevoCamion.pedidos.size == 1)
 
-		nuevoCamion = desp.agregarPedido(nuevoCamion, paquete2)
+		nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete2)
 		assert(nuevoCamion.pedidos.size == 2)
 		assert(nuevoCamion.capacidad == 42) //45 - 1 - 2 = 42
 	}
 	
 	it should "llevar tipos de paquetes especificados" in {
 	  intercept[PaqueteTipoInvalido]{
-	    desp.agregarPedido(furgoneta, paqueteUrgenteLiviano)//no puede llevar paquetes fragiles ni urgentes
+	    Despachante.agregarPedido(furgoneta, paqueteUrgenteLiviano)//no puede llevar paquetes fragiles ni urgentes
 	  }
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 	  intercept[PaqueteTipoInvalido]{
-	    desp.agregarPedido(nuevaFurgoneta, paqueteFragil)//aun no puede enviar el paquete fragil
+	    Despachante.agregarPedido(nuevaFurgoneta, paqueteFragil)//aun no puede enviar el paquete fragil
 	  }
-	  nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente, Fragil))
-	  nuevaFurgoneta = desp.agregarPedido(nuevaFurgoneta, paqueteUrgenteLiviano)
-	  nuevaFurgoneta = desp.agregarPedido(nuevaFurgoneta, paqueteFragil)
+	  nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente, Fragil))
+	  nuevaFurgoneta = Despachante.agregarPedido(nuevaFurgoneta, paqueteUrgenteLiviano)
+	  nuevaFurgoneta = Despachante.agregarPedido(nuevaFurgoneta, paqueteFragil)
 
 	  assert(nuevaFurgoneta.pedidos.size == 2)
 	}
 	
 	it should "calcular costo del envio" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
 	  
 	  assert(nuevoCamion.costoEnvio == 110)// 10 + 100
 	}
 	
 	it should "calcular costo con adicionales" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete1)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete1)
 	  
 	  assert(nuevoCamion.costoEnvio === 112.22 +- 0.01)//10 + 100 * (1+ (45-44)/45)
 	}
 	
 	it should "calcular la ganancia de un envio" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
-	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
+	  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete20)
 
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
@@ -196,34 +193,34 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "calcular la ganancia de un envio con distintos seguimientos" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
-	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
+	  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete20)
 
-	  nuevoCamion = desp.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelital))
+	  nuevoCamion = Despachante.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelital))
 
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  assert(nuevoCamion.costoEnvio == 94.5)// 10 + 10 + 100*0.5 + 2*12 + 1*0.5
 	  assert(nuevoCamion.gananciaEnvio == 65.5)//160 - 94.5
 	  
-	  nuevoCamion = desp.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelitalConVideo))
+	  nuevoCamion = Despachante.modificarServicioExtra(nuevoCamion, Some(SeguimientoSatelitalConVideo))
 
 	  assert(nuevoCamion.costoEnvio == 97.74000000000001)// 10 + 10 + 100*0.5 + 2*12 + 1*3.74
 	  assert(nuevoCamion.gananciaEnvio === 62.26 +- 0.01)//160 - 97.74
 	}
 	
 	it should "calcular el costo de un envio dependiendo la infraestructura" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete10)
-	  nuevoCamion = desp.agregarPedido(nuevoCamion, paquete20)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete10)
+	  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paquete20)
 
-	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
+	  nuevoCamion = Despachante.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
 
 	  SistemaExterno.distanciaTerrestre = 0.5
 	  SistemaExterno.cantidadPeajes  = 2
 	  
 	  assert(nuevoCamion.costoEnvio == 694)//20 + 100*0.5 + 2*12 + 600
 	
-	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(Animales))
+	  nuevoCamion = Despachante.modificarInfraestructura(nuevoCamion, Some(Animales))
 
 	  //distancia menor a 100km
 	  SistemaExterno.distanciaTerrestre = 50
@@ -240,22 +237,22 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	"Un camion" should "poder llevar paquetes con refrigeracion" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paqueteConRefrigeracion)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paqueteConRefrigeracion)
 	  assert(nuevoCamion.pedidos.size == 1)
 	}
 	
 	it should "calcular el costo de un envio con sustancias peligrosas y paquetes urgentes" in {
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
-	  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteUrgentePesado)
-	  nuevoCamion = desp.agregarPedido(nuevoCamion, paqueteUrgentePesado)
-	  nuevoCamion = desp.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
+	  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paqueteUrgentePesado)
+	  nuevoCamion = Despachante.agregarPedido(nuevoCamion, paqueteUrgentePesado)
+	  nuevoCamion = Despachante.modificarInfraestructura(nuevoCamion, Some(SustanciasPeligrosas))
 	  
 	  assert(nuevoCamion.capacidad == 5)
 	  assert(nuevoCamion.costoEnvio == 742.6666666666666)// 40 + 100 + 3*(40/45) + 600
 	}
 	
 	it should "calcular costo de ultima semana del mes yendo a casa central" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete10CasaCentral)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete10CasaCentral)
 
 	  SistemaExterno.fechaActual.setDate(24)
 	  
@@ -264,7 +261,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "calcular costo con adicional por volumen no aceptable" in {
-	  var nuevoCamion = desp.agregarPedido(camion, paquete1)
+	  var nuevoCamion = Despachante.agregarPedido(camion, paquete1)
 	  
 	  assert(nuevoCamion.costoEnvio == 112.22222222222221) //10 + 100 * (1 + (45-44)/45)
 	  assert(nuevoCamion.volumen - nuevoCamion.capacidad == 1)
@@ -276,13 +273,13 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  SistemaExterno.distanciaAerea = 900.0
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
-	    desp.agregarPedido(avion, paquete1)
+	    Despachante.agregarPedido(avion, paquete1)
 	  }
 	  
 	  SistemaExterno.distanciaAerea = 1000.0
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
-	    desp.agregarPedido(avion, paquete1)
+	    Despachante.agregarPedido(avion, paquete1)
 	  }	  
 	  
 	  SistemaExterno.distanciaAerea = 1100.0
@@ -291,17 +288,17 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	
 	it should "no poder llevar paquetes con refrigeracion" in {
 	  intercept[PaqueteTipoInvalido]{
-	    desp.agregarPedido(avion, paqueteConRefrigeracion)
+	    Despachante.agregarPedido(avion, paqueteConRefrigeracion)
 	  }
 	}
 	
 	it should "pagar 10% de impuesto si hace viajes internacionales" in {
 	  SistemaExterno.distanciaAerea = 1500
-	  var nuevoAvion = desp.agregarPedido(avion, paquete50nacional)
+	  var nuevoAvion = Despachante.agregarPedido(avion, paquete50nacional)
 
 	  assert(nuevoAvion.costoEnvio == 750010)
-	  nuevoAvion = desp.vaciarTransporte(nuevoAvion)
-	  nuevoAvion = desp.agregarPedido(avion, paquete50internacional)
+	  nuevoAvion = Despachante.vaciarTransporte(nuevoAvion)
+	  nuevoAvion = Despachante.agregarPedido(avion, paquete50internacional)
 
 	  assert(nuevoAvion.costoEnvio == 825011.0000000001)
 	}
@@ -315,7 +312,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
       }
 	  
 	  SistemaExterno.distanciaTerrestre = 200
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
@@ -338,7 +335,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  
 	  SistemaExterno.distanciaTerrestre = 1500
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -365,7 +362,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
 	  
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  
 	  cliente.generarPaquete(10, Normal)
@@ -382,7 +379,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,115)) //(110 + 120) / 2
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -407,7 +404,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -423,7 +420,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  
 	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,-20)) // (-30 + -10) / 2
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -450,7 +447,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
@@ -468,7 +465,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasPromedioTiempos.contains(sucursal1000,1.25)) // ((50/60)+(100/60))/2
 	  
 	  SistemaExterno.distanciaTerrestre = 150
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -495,7 +492,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -510,7 +507,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursal1000.despacharEnvios
 	  assert(estadisticas.estadisticasCantidadPaquetesEnviados.contains(sucursal1000,2))
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -537,7 +534,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -552,7 +549,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursal1000.despacharEnvios
 	  assert(estadisticas.estadisticasCantidadViajes.contains(sucursal1000,2))
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -583,7 +580,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  flechaBus.agregarSucursal(sucursal3000)
 	  estadisticas agregarCompania(flechaBus)
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
 	  cliente.generarPaquete(10, Normal)
 	  cliente.pedirEnvio
@@ -598,7 +595,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursal1000.despacharEnvios
 	  assert(estadisticas.estadisticasFacturacionTotalSucursales.contains(sucursal1000,-40))
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal, Urgente))
 
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
@@ -644,7 +641,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	}
 	
 	it should "filtrar envios por una restriccion de tipo de envio" in {
-	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  var nuevoCamion = Despachante.modificarTiposValidos(camion, List(Normal, Urgente))
 
 	  flechaBus.agregarSucursal(sucursal1000)
 	  estadisticas agregarCompania(flechaBus)
@@ -688,8 +685,8 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  estadisticas agregarCompania(flechaBus)
 	  SistemaExterno.distanciaAerea = 1100
 	  
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Urgente))
-	  var nuevoAvion = desp.modificarTiposValidos(avion, List(Fragil))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Urgente))
+	  var nuevoAvion = Despachante.modificarTiposValidos(avion, List(Fragil))
 	  
 	  sucursal1000.transportes = sucursal1000.transportes :+ camion
 	  sucursal1000.transportes = sucursal1000.transportes :+ nuevaFurgoneta
@@ -740,7 +737,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  restriccionFecha.fechaDesde.setDate(15)
 	  restriccionFecha.fechaHasta.setDate(30)
 	  estadisticas.restriccionesEnvio += restriccionFecha 
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Urgente))
 	  var trans: List[Transporte] = List(camion,otroCamion,nuevaFurgoneta,avion)
 	  sucursal1000.transportes ++= trans //todos los transportes del sistema
 
@@ -780,7 +777,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  flechaBus.agregarSucursal(sucursal1000)
 	  estadisticas agregarCompania(flechaBus)
 	  SistemaExterno.distanciaTerrestre = 1000
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Urgente))
 	  var trans: List[Transporte] = List(camion,otroCamion,nuevaFurgoneta,avion)
 	  sucursal1000.transportes ++= trans //todos los transportes del sistema
 	  
@@ -832,7 +829,7 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  sucursal2000.despacharEnvios
 	  
 	  assert(estadisticas.estadisticasFacturacionTotalCompanias.contains((flechaBus,(sucursal2000,-30))))
-	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal,Urgente))
+	  var nuevaFurgoneta = Despachante.modificarTiposValidos(furgoneta, List(Normal,Urgente))
 	  cliente.sucursalOrigen = sucursal3000
 	  sucursal3000.transportes = sucursal3000.transportes :+ furgoneta
 	  cliente.sucursalDestino = sucursal1000

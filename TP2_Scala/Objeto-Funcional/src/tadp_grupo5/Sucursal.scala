@@ -8,9 +8,6 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   var enviosRealizados: List [Envio] = List()
   var pedidosPendientes: List [Paquete] = List()
-
-  
-  val despachante: Despachante = Despachante()
   
   def capacidad : Int = volumenDeposito - paquetesPorEntrar.map(_.volumen).sum - paquetesPorSalir.map(_.volumen).sum  
   
@@ -24,8 +21,8 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   def asignarPaquete(paquete: Paquete) = {
     var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
     var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
-    if(!cargadosValidos.isEmpty)  {var trans: Transporte = despachante.agregarPedido(cargadosValidos.head, paquete); reemplazar(cargadosValidos.head, trans)}
-	else if(!vaciosValidos.isEmpty) {var trans: Transporte = despachante.agregarPedido(vaciosValidos.head, paquete); reemplazar(vaciosValidos.head, trans)}
+    if(!cargadosValidos.isEmpty)  {var trans: Transporte = Despachante.agregarPedido(cargadosValidos.head, paquete); reemplazar(cargadosValidos.head, trans)}
+	else if(!vaciosValidos.isEmpty) {var trans: Transporte = Despachante.agregarPedido(vaciosValidos.head, paquete); reemplazar(vaciosValidos.head, trans)}
 	else pedidosPendientes = pedidosPendientes :+ paquete
   }
   
@@ -51,7 +48,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     for (pedido <- envio.paquetes) descargarEnvio(pedido)
     if(envio.sucursalOrigen  == this){
     	enviosRealizados = enviosRealizados :+ envio
-    	var unTransporte = despachante.vaciarTransporte(envio.transporte)
+    	var unTransporte = Despachante.vaciarTransporte(envio.transporte)
     	reemplazar(envio.transporte, unTransporte)
     }
   }
