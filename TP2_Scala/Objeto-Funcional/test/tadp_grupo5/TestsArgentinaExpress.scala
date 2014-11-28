@@ -409,49 +409,49 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal1000,115)) // 
 	  assert(estadisticas.estadisticasPromedioCostos.contains(sucursal3000,55)) // (60+50)/2
 	}
-//	
-//	it should "mostrar ganancia promedio de todas las sucursales en analisis" in {
-//	  flechaBus.agregarSucursal(sucursal1000)
-//	  flechaBus.agregarSucursal(sucursal3000)
-//	  estadisticas agregarCompania(flechaBus)
-//	  sucursal1000.transportes = sucursal1000.transportes :+ camion
-//	  cliente.generarPaquete(10, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	 
-//	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,70))
-//	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
-//	  sucursal1000.reemplazar(camion, nuevoCamion)
-////	  camion.tipoDePaquetesValidos = List(Normal, Urgente)
-//	  cliente.generarPaquete(30, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  camion.hacerEnvio
-//	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,80)) // (70+90)/2
-//	  
-//	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
-////	  furgoneta.tipoDePaquetesValidos = List(Normal, Urgente)
-//	  cliente.sucursalOrigen = sucursal3000
-//	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
-//	  cliente.sucursalDestino = sucursal1000
-//	  cliente.generarPaquete(2, Normal)
-//	  cliente.pedirEnvio
-//	  cliente.generarPaquete(3, Urgente)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  cliente.generarPaquete(4, Normal)
-//	  cliente.pedirEnvio
-//	  
-//	  furgoneta.hacerEnvio
-//	  
-//	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,80)) // (70+90)/2
-//	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal3000,115)) // ((70+90)+70)/2
-//	  
-//	}
-//	
+	
+	it should "mostrar ganancia promedio de todas las sucursales en analisis" in {
+	  flechaBus.agregarSucursal(sucursal1000)
+	  flechaBus.agregarSucursal(sucursal3000)
+	  estadisticas agregarCompania(flechaBus)
+	  var nuevoCamion = desp.modificarTiposValidos(camion, List(Normal, Urgente))
+	  sucursal1000.transportes = sucursal1000.transportes :+ nuevoCamion
+	  cliente.generarPaquete(10, Normal)
+	  cliente.pedirEnvio
+	  
+	  sucursal1000.despacharEnvios
+	 
+	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,-30))// 80 - 110
+
+	  cliente.generarPaquete(30, Urgente)
+	  cliente.pedirEnvio
+	  
+	  sucursal1000.despacharEnvios
+	  
+	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,-20)) // (-30 + -10) / 2
+	  
+	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Normal, Urgente))
+
+	  cliente.sucursalOrigen = sucursal3000
+	  sucursal3000.transportes = sucursal3000.transportes :+ nuevaFurgoneta
+	  cliente.sucursalDestino = sucursal1000
+	  cliente.generarPaquete(2, Normal)
+	  cliente.pedirEnvio
+	  cliente.generarPaquete(3, Urgente)
+	  cliente.pedirEnvio
+	  
+	  sucursal3000.despacharEnvios
+	  
+	  cliente.generarPaquete(4, Normal)
+	  cliente.pedirEnvio
+	  
+	  sucursal3000.despacharEnvios
+	  
+	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal1000,-20))
+	  assert(estadisticas.estadisticasPromedioGanancias.contains(sucursal3000,75)) // (120 + 30) / 2
+	  
+	}
+	
 //	it should "mostrar tiempo promedio de todas las sucursales en analisis" in {
 //	  SistemaExterno.distanciaTerrestre = 50
 //	  flechaBus.agregarSucursal(sucursal1000)
