@@ -50,10 +50,11 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def descargarEnvios(envio: Envio) = {
     for (pedido <- envio.paquetes) descargarEnvio(pedido)
-    if(envio.sucursalOrigen  == this)
+    if(envio.sucursalOrigen  == this){
     	enviosRealizados = enviosRealizados :+ envio
     	var unTransporte = despachante.vaciarTransporte(envio.transporte)
     	reemplazar(envio.transporte, unTransporte)
+    }
   }
   
   def descargarEnvio(pedido : Paquete){
@@ -79,7 +80,6 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def despacharEnvios = {
     filtrarTransportes(filtroCargados).foreach(_.hacerEnvio)
-    
   }
 }
 
