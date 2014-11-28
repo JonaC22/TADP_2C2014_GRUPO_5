@@ -21,7 +21,6 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     transportes = filtrados :+ transporte2 //agrego transporte2
   }
   
-  
   def asignarPaquete(paquete: Paquete) = {
     var cargadosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroCargados),filtroValidos)
     var vaciosValidos: List[Transporte] = filtrarValidos(paquete,filtrarTransportes(filtroVacios),filtroValidos)
@@ -62,11 +61,9 @@ case class Sucursal (volumenDeposito : Int, pais : String){
       paquetesPorEntrar = paquetesPorEntrar.filterNot(_== pedido) 
     } else paquetesPorSalir = paquetesPorSalir.filterNot(_== pedido)
   }
-  
-  
-  //Esta parte se puede mejorar y usar composicion (pero logro hacerlo andar)
+
   def filtrarTransportes(f: Transporte => Boolean): List[Transporte] = {
-    for { transporte <- transportes if(f(transporte))} yield transporte
+    transportes.filter(x => f(x))
   }
   
   val filtroVacios : Transporte => Boolean = _.pedidos.isEmpty

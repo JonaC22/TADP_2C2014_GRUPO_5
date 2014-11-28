@@ -71,12 +71,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  cliente.paquete = null
 	  cliente.sucursalOrigen = sucursal1000
 	  cliente.sucursalDestino = sucursal3000
-//	  transportes = List(camion, otroCamion, avion, furgoneta)
-//	  transportes.foreach(_.pedidos = List())
-//	  transportes.foreach(_.servicioExtra = None)
-//	  transportes.foreach(_.infraestructura = None)
-//	  transportes.foreach(_.tipoDePaquetesValidos = List(Normal))
-//	  transportes.foreach(_.historialEnvios  = List())
 	  sucursales.foreach(_.paquetesPorEntrar = List())
 	  sucursales.foreach(_.paquetesPorSalir = List())
 	  sucursales.foreach(_.transportes = List())
@@ -790,9 +784,6 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	  var nuevaFurgoneta = desp.modificarTiposValidos(furgoneta, List(Urgente))
 	  var trans: List[Transporte] = List(camion,otroCamion,nuevaFurgoneta,avion)
 	  sucursal1000.transportes ++= trans //todos los transportes del sistema
-//	  sucursal1000.transportes ++= transportes //todos los transportes del sistema
-//	  
-//	  furgoneta.tipoDePaquetesValidos = List(Urgente)
 	  
 	  cliente.generarPaquete(12, NecesitaRefrigeracion)
 	  cliente.pedirEnvio

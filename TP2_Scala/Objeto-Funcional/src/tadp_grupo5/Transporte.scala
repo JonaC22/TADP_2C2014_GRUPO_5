@@ -75,8 +75,6 @@ case class Camion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal,Nece
     costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
   }
   
-//  def costo : Double = costoBase + costosAdicionales
-  
   override def costosAdicionales : Double = costoPeajes + costoExtras + costoSustanciasUrgentes
   
   def costoExtras : Double = costoSatelital + costoInfraestructura
@@ -119,8 +117,6 @@ case class Furgoneta(tipoDePaquetesValidos: List[Caracteristica] = List(Normal),
   
   override def costoBase: Double = costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
   
-//  def costo : Double = costoBase + costosAdicionales
-  
   override def costosAdicionales : Double = costoPeajes + costoExtras
   
   def costoExtras : Double = costoSatelital + costoInfraestructura
@@ -157,8 +153,6 @@ case class Avion(tipoDePaquetesValidos: List[Caracteristica] = List(Normal), sis
   def multiplicadorVolumen: Double = if(!volumenOcupadoAceptable) 3 else 1
   
   override def costoBase = costoKm * distanciaEntre(sucursalOrigen, sucursalDestino) * multiplicadorVolumen
-  
-//  def costo: Double = costoBase + costosAdicionales
   
   override def costosAdicionales: Double = costoExtras
   
