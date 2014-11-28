@@ -45,7 +45,7 @@ trait Transporte {
 	def paquetesUrgentes: List[Paquete] = for{ paquete <- pedidos if paquete.caracteristica == Urgente} yield paquete
 	
 	def hacerEnvio {
-	  var envio: Envio = Envio(sucursalOrigen,sucursalDestino,pedidos,this)
+	  var envio: Envio = Envio(sucursalOrigen,sucursalDestino,pedidos,this,sistemaExterno.fechaActual)
 	  sucursalOrigen.descargarEnvios(envio)
 	  sucursalDestino.descargarEnvios(envio)
 	}
