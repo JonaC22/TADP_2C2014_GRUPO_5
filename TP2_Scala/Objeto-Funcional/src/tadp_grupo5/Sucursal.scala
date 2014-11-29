@@ -10,11 +10,14 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   def capacidad : Int = volumenDeposito - paquetesPorEntrar.map(_.volumen).sum - paquetesPorSalir.map(_.volumen).sum  
   
-  def esCasaCentral: Boolean = false
-  
   def actualizarTransportes(transporteAnterior: Transporte, transporteNuevo: Transporte) = { //reemplazo la referencia vieja del transporte por una nueva
     var filtrados : List[Transporte] = transportes.filterNot(_.equals(transporteAnterior))//elimino el estado anterior del transporte
     transportes = filtrados :+ transporteNuevo //agrego el nuevo estado del transporte
+  }
+  
+  def esCasaCentral : Boolean = this match {
+    case _ : CasaCentral => true
+    case _ => false
   }
   
   def asignarPaquete(paquete: Paquete) = {
@@ -81,9 +84,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   }
 }
 
-class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais){
-  override def esCasaCentral : Boolean = true
-}
+class CasaCentral(volumenDeposito : Int, override val pais : String) extends Sucursal(volumenDeposito, pais)
 
 case class SucursalSinCapacidad() extends Exception
 

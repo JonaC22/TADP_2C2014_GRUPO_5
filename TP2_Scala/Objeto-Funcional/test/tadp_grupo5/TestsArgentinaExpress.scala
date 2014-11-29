@@ -27,42 +27,42 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 		}
 	}
     
-	val sucursal10 = new Sucursal(10, "Argentina")
-	val sucursal20 = new Sucursal(20, "Argentina")
-    val sucursal30 = new Sucursal(30, "Uruguay")
-	val sucursal1000 = new Sucursal(1000, "Brasil")
-	val sucursal2000 = new Sucursal(2000, "Brasil")
-    val sucursal3000 = new Sucursal(3000, "Argentina")
+	val sucursal10 = Sucursal(10, "Argentina")
+	val sucursal20 = Sucursal(20, "Argentina")
+    val sucursal30 = Sucursal(30, "Uruguay")
+	val sucursal1000 = Sucursal(1000, "Brasil")
+	val sucursal2000 = Sucursal(2000, "Brasil")
+    val sucursal3000 = Sucursal(3000, "Argentina")
 	val casaCentral = new CasaCentral(20, "Brasil")
 	val sucursales = List(sucursal10, sucursal20, sucursal30, sucursal1000, sucursal2000, sucursal3000, casaCentral)
 	
-	val flechaBus = new Compania()
-	val chevallier = new Compania()
+	val flechaBus = Compania()
+	val chevallier = Compania()
 	val companias = List(flechaBus, chevallier)
 	
-	val cliente = new Cliente(sucursal1000, sucursal3000)
+	val cliente = Cliente(sucursal1000, sucursal3000)
 	  
-	val estadisticas = new Estadisticas()
+	val estadisticas = Estadisticas()
 	
 	val camion = Transporte(SistemaExterno, Camion())
 	val otroCamion = Transporte(SistemaExterno, Camion())
 	val avion = Transporte(SistemaExterno, Avion())
 	val furgoneta = Transporte(SistemaExterno, Furgoneta())
 
-	val paquete1 = new Paquete(sucursal10, sucursal20,1, Normal)
-	val paqueteInvertido1 = new Paquete(sucursal20, sucursal10,1, Normal)
-	val paquete2 = new Paquete(sucursal10, sucursal20,2, Normal)
-	val paquete5 =new Paquete(sucursal30, sucursal20,5, Normal)
-	val paquete10 = new Paquete(sucursal10, sucursal20,10, Normal)
-	val paquete10CasaCentral = new Paquete(sucursal10, casaCentral,10, Normal)
-	val paquete20 = new Paquete(sucursal10, sucursal20,20, Normal)
-	val paquete50nacional = new Paquete(sucursal1000, sucursal2000, 50, Normal)
-	val paquete50internacional = new Paquete(sucursal1000, sucursal3000, 50, Normal)
-	val paqueteConMuchoVolumen = new Paquete(sucursal10, sucursal20, 9999, Normal)
-	val paqueteUrgenteLiviano = new Paquete(sucursal10, sucursal20,1, Urgente) 
-	val paqueteUrgentePesado = new Paquete(sucursal10, sucursal20,20, Urgente) 
-	val paqueteConRefrigeracion = new Paquete(sucursal10, sucursal20,10, NecesitaRefrigeracion)
-	val paqueteFragil = new Paquete(sucursal10, sucursal20,2, Fragil)
+	val paquete1 = Paquete(sucursal10, sucursal20,1, Normal)
+	val paqueteInvertido1 = Paquete(sucursal20, sucursal10,1, Normal)
+	val paquete2 = Paquete(sucursal10, sucursal20,2, Normal)
+	val paquete5 =Paquete(sucursal30, sucursal20,5, Normal)
+	val paquete10 = Paquete(sucursal10, sucursal20,10, Normal)
+	val paquete10CasaCentral = Paquete(sucursal10, casaCentral,10, Normal)
+	val paquete20 = Paquete(sucursal10, sucursal20,20, Normal)
+	val paquete50nacional = Paquete(sucursal1000, sucursal2000, 50, Normal)
+	val paquete50internacional = Paquete(sucursal1000, sucursal3000, 50, Normal)
+	val paqueteConMuchoVolumen = Paquete(sucursal10, sucursal20, 9999, Normal)
+	val paqueteUrgenteLiviano = Paquete(sucursal10, sucursal20,1, Urgente) 
+	val paqueteUrgentePesado = Paquete(sucursal10, sucursal20,20, Urgente) 
+	val paqueteConRefrigeracion = Paquete(sucursal10, sucursal20,10, NecesitaRefrigeracion)
+	val paqueteFragil = Paquete(sucursal10, sucursal20,2, Fragil)
 	
 	after{
 	  cliente.paquete = null
@@ -262,19 +262,15 @@ class TestsArgentinaExpress extends FlatSpec with BeforeAndAfter with Matchers{
 	"Un avion" should "no poder hacer viajes menor o igual a 1000 kilometros" in {
 
 	  SistemaExterno.distanciaAerea = 900.0
+	  var nuevoAvion = avion.agregarPedido(paquete1)
 	  
 	  intercept[EnvioConDistanciaMenorA1000KM]{
-	    avion.agregarPedido(paquete1)
+	    nuevoAvion.hacerEnvio
 	  }
-	  
-	  SistemaExterno.distanciaAerea = 1000.0
-	  
-	  intercept[EnvioConDistanciaMenorA1000KM]{
-	    avion.agregarPedido(paquete1)
-	  }	  
-	  
-	  SistemaExterno.distanciaAerea = 1100.0
 
+	  assert(nuevoAvion.pedidos.size == 1)
+	  SistemaExterno.distanciaAerea = 1100.0
+	  assert(nuevoAvion.hacerEnvio.pedidos.size == 0)
 	}
 	
 	it should "no poder llevar paquetes con refrigeracion" in {

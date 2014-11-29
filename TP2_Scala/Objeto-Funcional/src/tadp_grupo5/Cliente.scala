@@ -1,6 +1,6 @@
 package tadp_grupo5
 
-class Cliente(var sucursalOrigen: Sucursal, var sucursalDestino: Sucursal) {
+case class Cliente(var sucursalOrigen: Sucursal, var sucursalDestino: Sucursal) {
 
   var paquete: Paquete = null
 

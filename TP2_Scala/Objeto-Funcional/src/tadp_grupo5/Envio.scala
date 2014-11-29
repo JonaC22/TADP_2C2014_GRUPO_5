@@ -4,7 +4,7 @@ import java.util.Date
 
 case class Envio(transporte : Transporte, distanciaRecorrida : Double, fecha : Date = new Date()){
   
-  def costosPaquetes: List[Double] = for{ paquete <- paquetes } yield paquete.caracteristica.costo
+  def costosPaquetes: List[Double] = for{ paquete <- paquetes } yield paquete.costo
   def paquetesRefrigeracion: List[Paquete] = for{ paquete <- paquetes if paquete.caracteristica == NecesitaRefrigeracion} yield paquete
   def paquetesUrgentes: List[Paquete] = for{ paquete <- paquetes if paquete.caracteristica == Urgente} yield paquete
   def paquetes = transporte.pedidos 
@@ -37,7 +37,7 @@ case class Envio(transporte : Transporte, distanciaRecorrida : Double, fecha : D
     }
   }
   
-  def precio: Double = (for{ paquete <- transporte.pedidos } yield paquete.caracteristica.precio).sum
+  def precio: Double = (for{ paquete <- transporte.pedidos } yield paquete.precio).sum
   
   def ganancia: Double = precio - costo
   

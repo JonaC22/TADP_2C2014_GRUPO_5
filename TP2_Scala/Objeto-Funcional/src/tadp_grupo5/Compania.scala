@@ -1,7 +1,7 @@
 package tadp_grupo5
 
 
-class Compania {
+case class Compania() {
 	var sucursales : List[Sucursal] = List()
 	
 	def agregarSucursal(sucursal : Sucursal) {

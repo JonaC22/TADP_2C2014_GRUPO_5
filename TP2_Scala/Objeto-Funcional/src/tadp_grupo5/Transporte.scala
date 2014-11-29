@@ -15,7 +15,7 @@ case class Transporte(
 	def velocidad: Double = tipoTransporte.velocidad
 	
 	def puedeLlevar(nuevoPaquete: Paquete): Boolean = {
-	  validarTipo(nuevoPaquete) && validarCapacidad(nuevoPaquete) && tipoTransporte.validarDestino(this, nuevoPaquete)
+	  validarTipo(nuevoPaquete) && validarCapacidad(nuevoPaquete) && validarDestino(nuevoPaquete)
 	}
 	
 	def validarTipo(pedido: Paquete) : Boolean = 
@@ -33,10 +33,7 @@ case class Transporte(
 	def sucursalOrigen: Sucursal = pedidos.head.sucursalOrigen
 	def sucursalDestino: Sucursal = pedidos.head.sucursalDestino
 	
-	def distanciaEntreSucursales(pedido : Paquete) = tipoTransporte match{
-	  case _ : Avion => sistemaExterno.distanciaAereaEntre(pedido.sucursalOrigen, pedido.sucursalDestino)
-	  case _ => sistemaExterno.distanciaTerrestreEntre(pedido.sucursalOrigen, pedido.sucursalDestino)
-	}
+	def envioNoAceptableCamion : Boolean = !volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral
 	
 	def distanciaEntreSucursales = tipoTransporte match{
 	  case _ : Avion => sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
@@ -47,10 +44,15 @@ case class Transporte(
 	
 	def paquetesUrgentes: List[Paquete] = for{ paquete <- pedidos if paquete.caracteristica == Urgente} yield paquete
 	
-	def hacerEnvio {
+	def hacerEnvio : Transporte ={
+	  tipoTransporte match {
+	    case _ : Avion => if (distanciaEntreSucursales < 1000) throw new EnvioConDistanciaMenorA1000KM()
+	    case _ =>
+	  }
 	  var envio: Envio = Envio(this, distanciaEntreSucursales, sistemaExterno.fechaActual)
 	  sucursalOrigen.descargarEnvio(envio)
 	  sucursalDestino.descargarEnvio(envio)
+	  this.vaciarTransporte
 	}
 
 	def costoEnvio: Double = {
@@ -105,14 +107,12 @@ abstract class TipoTransporte(val volumen : Double, val costoKm : Double, val ve
 	      case None => 0.0
 	    }
 	}
-	
-	def validarDestino(transporte : Transporte, pedido : Paquete) = transporte.validarDestino(pedido)
 }
 
 case class Camion() extends TipoTransporte(45, 100, 60) {
   
   override def multiplicadorVolumen(transporte : Transporte): Double = {
-    if(!transporte.volumenOcupadoAceptable && !transporte.sucursalDestino.esCasaCentral && !transporte.sucursalOrigen.esCasaCentral) 1 + ((volumen - transporte.capacidad)/ volumen) else 1
+    if(transporte.envioNoAceptableCamion) 1 + ((volumen - transporte.capacidad)/ volumen) else 1
   }
   
   override def costoSatelital(transporte : Transporte) : Double = {
@@ -155,10 +155,6 @@ case class Furgoneta() extends TipoTransporte(9, 40, 80){
 case class Avion() extends TipoTransporte(200, 500, 500){
   
   override def costoPeajes(transporte : Transporte) : Double = 0.0
-  
-  override def validarDestino(transporte : Transporte, pedido: Paquete) = if(super.validarDestino(transporte, pedido) && distancia(transporte, pedido) > 1000) true else throw new EnvioConDistanciaMenorA1000KM()
-  
-  def distancia(transporte : Transporte, pedido : Paquete): Double = transporte.distanciaEntreSucursales(pedido : Paquete)
   
   override def multiplicadorVolumen(transporte : Transporte) : Double = if(!transporte.volumenOcupadoAceptable) 3 else 1
 }

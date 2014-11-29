@@ -4,7 +4,7 @@ import scala.collection.immutable.Set
 import scala.collection.immutable.List
 import java.util.Date
 
-class Estadisticas {
+case class Estadisticas() {
   
   type tuplaSucursalValue = (Sucursal, Double)
   type tuplaCompaniaSucursalValue = (Compania, tuplaSucursalValue)
