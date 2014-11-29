@@ -20,7 +20,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   def asignarPaquete(paquete: Paquete) = {
     var transportesValidos: List[Transporte] = filtrarTransportesValidos(paquete,transportePuedeLlevar)
     if(!transportesValidos.isEmpty){
-      var trans: Transporte = Despachante.agregarPedido(transportesValidos.head, paquete)
+      var trans: Transporte = transportesValidos.head.agregarPedido(paquete)
       actualizarTransportes(transportesValidos.head, trans)
     }
 	else pedidosPendientes = pedidosPendientes :+ paquete
@@ -48,7 +48,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     for (pedido <- envio.paquetes) descargarPedido(pedido)
     if(envio.sucursalOrigen  == this){
     	enviosRealizados = enviosRealizados :+ envio
-    	var unTransporte = Despachante.vaciarTransporte(envio.transporte)
+    	var unTransporte = envio.transporte.vaciarTransporte
     	actualizarTransportes(envio.transporte, unTransporte)
     }
   }
@@ -65,7 +65,12 @@ case class Sucursal (volumenDeposito : Int, pais : String){
   
   val transporteCargado: Transporte => Boolean = !_.pedidos.isEmpty
   
-  val transportePuedeLlevar: (Transporte,Paquete) => Boolean = (transporte,paquete) => transporte.puedeLlevar(paquete)
+  val transportePuedeLlevar: (Transporte,Paquete) => Boolean = (transporte,paquete) => 
+    try { transporte.puedeLlevar(paquete) } 
+    catch { 
+      case tex : TransporteException => false
+      case ex : Exception => throw ex
+    }
   
   def filtrarTransportesValidos : (Paquete, (Transporte,Paquete) => Boolean) => List[Transporte] = {
     (paquete,f) => for { transporte <- transportes if(f(transporte,paquete))} yield transporte

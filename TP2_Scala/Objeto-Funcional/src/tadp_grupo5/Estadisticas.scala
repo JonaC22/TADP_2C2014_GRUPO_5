@@ -73,7 +73,7 @@ class Estadisticas {
   val tiempoTotalViajesSucursal : funcionCalculo = {
     envios => (for {
       envio <- envios
-      } yield envio.distanciaRecorrida/envio.transporte.velocidad).sum
+      } yield envio.distanciaRecorrida/envio.velocidad).sum
   }
   
   val promedioViaje : funcionCalculo => Sucursal => Double = {
@@ -130,7 +130,7 @@ trait RestriccionEnvio {
 
 case class RestriccionPorCamion() extends RestriccionEnvio{
   def aplicarRestriccion(envio : Envio) : Boolean = {
-    envio.transporte match {
+    envio.tipoTransporte match {
     case _ : Camion => true
     case _ => false
     }
@@ -139,7 +139,7 @@ case class RestriccionPorCamion() extends RestriccionEnvio{
 
 case class RestriccionPorFurgoneta() extends RestriccionEnvio{
   def aplicarRestriccion(envio : Envio) : Boolean = {
-    envio.transporte match {
+    envio.tipoTransporte match {
     case _ : Furgoneta => true
     case _ => false
     }
@@ -148,7 +148,7 @@ case class RestriccionPorFurgoneta() extends RestriccionEnvio{
 
 case class RestriccionPorAvion() extends RestriccionEnvio{
   def aplicarRestriccion(envio : Envio) : Boolean = {
-    envio.transporte match {
+    envio.tipoTransporte match {
     case _ : Avion => true
     case _ => false
     }

@@ -2,16 +2,21 @@ package tadp_grupo5
 
 import java.util.Date
 
-case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: List[Paquete], transporte : Transporte, fecha: Date = new Date){
+case class Envio(transporte : Transporte, distanciaRecorrida : Double, fecha : Date = new Date()){
   
   def costosPaquetes: List[Double] = for{ paquete <- paquetes } yield paquete.caracteristica.costo
   def paquetesRefrigeracion: List[Paquete] = for{ paquete <- paquetes if paquete.caracteristica == NecesitaRefrigeracion} yield paquete
   def paquetesUrgentes: List[Paquete] = for{ paquete <- paquetes if paquete.caracteristica == Urgente} yield paquete
+  def paquetes = transporte.pedidos 
+  def sucursalDestino = transporte.sucursalDestino
+  def sucursalOrigen = transporte.sucursalOrigen
+  def velocidad = transporte.velocidad
+  def tipoTransporte : TipoTransporte = transporte.tipoTransporte 
   
   //costo base paquetes
   def costoBase: Double = {
-    transporte match {
-      case Camion(_,_,_,_,_) | Furgoneta(_,_,_,_,_) => costosPaquetes.sum + paquetesRefrigeracion.size * 5
+    transporte.tipoTransporte  match {
+      case _ : Camion | _ : Furgoneta => costosPaquetes.sum + paquetesRefrigeracion.size * 5
       case _ => costosPaquetes.sum
     }
   }
@@ -20,9 +25,9 @@ case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: 
   
   //costo con adicionales
   def costoConAdicionales: Double = {
-    transporte match {
-      case Camion(_,_,_,_,_) => if(sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 1.02 else costo
-      case Avion(_,_,_,_,_) => {
+    transporte.tipoTransporte  match {
+      case _ : Camion => if(sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 1.02 else costo
+      case _ : Avion => {
         if(sucursalDestino.esCasaCentral && fecha.getDate() > 21 && sucursalDestino.pais != sucursalOrigen.pais) (costo * 1.1)* 0.80 //10% impuestos y 20% descuento
         else if (sucursalDestino.esCasaCentral && fecha.getDate() > 21) costo * 0.80 //20% de descuento
         else if(sucursalDestino.pais != sucursalOrigen.pais) costo * 1.1 //10% impuesto
@@ -32,10 +37,8 @@ case class Envio(sucursalOrigen: Sucursal, sucursalDestino: Sucursal, paquetes: 
     }
   }
   
-  def precio: Double = (for{ paquete <- paquetes } yield paquete.caracteristica.precio).sum
+  def precio: Double = (for{ paquete <- transporte.pedidos } yield paquete.caracteristica.precio).sum
   
   def ganancia: Double = precio - costo
-  
-  val distanciaRecorrida : Double = transporte.distanciaEntre(sucursalOrigen, sucursalDestino)
   
 }
