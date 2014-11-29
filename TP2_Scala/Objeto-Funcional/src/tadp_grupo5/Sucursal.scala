@@ -25,7 +25,7 @@ case class Sucursal (volumenDeposito : Int, pais : String){
     if(!transportesValidos.isEmpty){
       var trans: Transporte = transportesValidos.head.agregarPedido(paquete)
       actualizarTransportes(transportesValidos.head, trans)
-      pedidosPendientes = pedidosPendientes.filter(_.equals(paquete))//elimino pedido de la lista de pendientes
+      pedidosPendientes = pedidosPendientes.filterNot(_.equals(paquete))//elimino pedido de la lista de pendientes
     }
 	else pedidosPendientes = pedidosPendientes :+ paquete
   }
