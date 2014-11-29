@@ -14,19 +14,13 @@ case class Transporte(
 	def capacidad: Double = tipoTransporte.volumen - pedidos.map(_.volumen).sum
 	def velocidad: Double = tipoTransporte.velocidad
 	
-	def puedeLlevar(nuevoPaquete: Paquete): Boolean = {
-	  validarTipo(nuevoPaquete) && validarCapacidad(nuevoPaquete) && validarDestino(nuevoPaquete)
-	}
+	def puedeLlevar(nuevoPaquete: Paquete): Boolean =  validarTipo(nuevoPaquete) && validarCapacidad(nuevoPaquete) && validarDestino(nuevoPaquete)
 	
-	def validarTipo(pedido: Paquete) : Boolean = 
-	  if((tipoTransporte match {
-	   			case _ : Camion => pedido.caracteristica == NecesitaRefrigeracion
-	   			case _ => false
-	   }) || tipoDePaquetesValidos.contains(pedido.caracteristica) ) true else throw new PaqueteTipoInvalido()
-		
-	def validarCapacidad(nuevoPaquete: Paquete) : Boolean = if (capacidad < nuevoPaquete.volumen) throw new TransporteSinCapacidad() else true
+	def validarTipo(pedido: Paquete) : Boolean = if(tipoTransporte.validarCaracteristica(this, pedido)) true else throw PaqueteTipoInvalido()
 	
-	def validarDestino(nuevoPaquete: Paquete) : Boolean = if (pedidos.size != 0 && nuevoPaquete.sucursalDestino != pedidos.head.sucursalDestino) throw new PaquetesDestinoErroneo() else true
+	def validarCapacidad(nuevoPaquete: Paquete) : Boolean = if (capacidad < nuevoPaquete.volumen) throw TransporteSinCapacidad() else true
+	
+	def validarDestino(nuevoPaquete: Paquete) : Boolean = if (pedidos.size != 0 && nuevoPaquete.sucursalDestino != pedidos.head.sucursalDestino) throw PaquetesDestinoErroneo() else true
 	
 	def volumenOcupadoAceptable: Boolean = (tipoTransporte.volumen - capacidad) >= tipoTransporte.volumen * 0.20
 	
@@ -35,33 +29,27 @@ case class Transporte(
 	
 	def envioNoAceptableCamion : Boolean = !volumenOcupadoAceptable && !sucursalDestino.esCasaCentral && !sucursalOrigen.esCasaCentral
 	
-	def distanciaEntreSucursales = tipoTransporte match{
-	  case _ : Avion => sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
-	  case _ => sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
-	}
+	def distancia = tipoTransporte.distancia(this)
+	
+	def distanciaAerea = sistemaExterno.distanciaAereaEntre(sucursalOrigen, sucursalDestino)
+	
+	def distanciaTerrestre = sistemaExterno.distanciaTerrestreEntre(sucursalOrigen, sucursalDestino)
 	
 	def cantidadPeajes : Double = sistemaExterno.cantidadPeajesEntre(sucursalOrigen, sucursalDestino)
 	
 	def paquetesUrgentes: List[Paquete] = for{ paquete <- pedidos if paquete.caracteristica == Urgente} yield paquete
 	
 	def hacerEnvio : Transporte ={
-	  tipoTransporte match {
-	    case _ : Avion => if (distanciaEntreSucursales < 1000) throw new EnvioConDistanciaMenorA1000KM()
-	    case _ =>
-	  }
-	  var envio: Envio = Envio(this, distanciaEntreSucursales, sistemaExterno.fechaActual)
+	  tipoTransporte.validarDistancia(this)
+	  var envio: Envio = Envio(this, distancia, sistemaExterno.fechaActual)
 	  sucursalOrigen.descargarEnvio(envio)
 	  sucursalDestino.descargarEnvio(envio)
 	  this.vaciarTransporte
 	}
 
-	def costoEnvio: Double = {
-	  Envio(this, distanciaEntreSucursales, sistemaExterno.fechaActual).costoConAdicionales
-	}
+	def costoEnvio: Double = Envio(this, distancia, sistemaExterno.fechaActual).costoConAdicionales
 	
-	def gananciaEnvio: Double = {
-	  Envio(this, distanciaEntreSucursales, sistemaExterno.fechaActual).ganancia
-	}
+	def gananciaEnvio: Double = Envio(this, distancia, sistemaExterno.fechaActual).ganancia
 	
 	def agregarPedido(pedido: Paquete) = {	 
 		puedeLlevar(pedido)
@@ -75,14 +63,14 @@ case class Transporte(
 	def modificarServicioExtra(servicio: Option[ServicioExtra]) = this.copy(servicioExtra = servicio)
 	
 	def modificarInfraestructura(inf: Option[Infraestructura]) = this.copy(infraestructura = inf)
+	
+	def puedeLlevarCaracteristica(caracteristica : Caracteristica) = tipoDePaquetesValidos.contains(caracteristica)
 
 }
 
 abstract class TipoTransporte(val volumen : Double, val costoKm : Double, val velocidad : Double) {
   
 	def multiplicadorVolumen(transporte : Transporte) : Double = 0
-	
-	def distancia(transporte : Transporte) : Double = transporte.distanciaEntreSucursales
 	
 	def costoBase(transporte : Transporte) : Double = costoKm * distancia(transporte) * multiplicadorVolumen(transporte)
 	
@@ -107,13 +95,17 @@ abstract class TipoTransporte(val volumen : Double, val costoKm : Double, val ve
 	      case None => 0.0
 	    }
 	}
+	
+	def validarCaracteristica(transporte : Transporte, pedido : Paquete) : Boolean = transporte.puedeLlevarCaracteristica(pedido.caracteristica)
+	
+	def distancia(transporte : Transporte) = transporte.distanciaTerrestre
+	
+	def validarDistancia(transporte : Transporte) = true
 }
 
 case class Camion() extends TipoTransporte(45, 100, 60) {
   
-  override def multiplicadorVolumen(transporte : Transporte): Double = {
-    if(transporte.envioNoAceptableCamion) 1 + ((volumen - transporte.capacidad)/ volumen) else 1
-  }
+  override def multiplicadorVolumen(transporte : Transporte): Double =  if(transporte.envioNoAceptableCamion) 1 + ((volumen - transporte.capacidad)/ volumen) else 1
   
   override def costoSatelital(transporte : Transporte) : Double = {
     transporte.servicioExtra match {
@@ -142,6 +134,8 @@ case class Camion() extends TipoTransporte(45, 100, 60) {
     var volUrgentes : Double = (for { paquete <- transporte.paquetesUrgentes} yield paquete.volumen).sum
     3 * (volUrgentes/ volumen)
   }
+  
+  override def validarCaracteristica(transporte : Transporte, pedido : Paquete) : Boolean = super.validarCaracteristica(transporte, pedido) || pedido.caracteristica == NecesitaRefrigeracion
 }
 
 case class Furgoneta() extends TipoTransporte(9, 40, 80){
@@ -153,6 +147,10 @@ case class Furgoneta() extends TipoTransporte(9, 40, 80){
 }
 
 case class Avion() extends TipoTransporte(200, 500, 500){
+  
+  override def distancia(transporte : Transporte) : Double = transporte.distanciaAerea
+  
+  override def validarDistancia(transporte : Transporte) = if(distancia(transporte) < 1000) throw EnvioConDistanciaMenorA1000KM() else true
   
   override def costoPeajes(transporte : Transporte) : Double = 0.0
   
